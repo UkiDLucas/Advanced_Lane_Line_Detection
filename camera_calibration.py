@@ -6,11 +6,11 @@
 
 # ## Motivation
 # 
-# The raw camera data usually has a certain level of distortion caused by lense shape, especially on the edges of the image. The correction is essential in applications like image recognition used in autonomous vehicles, robotics and even in 3D printing.
+# The raw camera data usually has a certain level of distortion caused by lense shape, this is especially pronounced on the edges of the image. The correction is essential in applications like image recognition used in autonomous vehicles, robotics and even in 3D printing.
 
 # ## Solution approach
 # 
-# The common solution is to compare a **known shape object e.g. a chessboard** with the image taken, then calculate this **specific camera's** adjustment parameters that then can be applied to every frame taken by the camera. If the camera angle changes, the parameters have to be recalibrated.
+# The common solution is to compare a **known shape object e.g. a chessboard** with the image taken, then calculate this **specific camera's** adjustment parameters that then can be applied to every frame taken by the camera. If the camera changes, the parameters have to be recalibrated.
 
 # In[1]:
 
@@ -23,11 +23,12 @@ import matplotlib.pyplot as plt
 get_ipython().magic('matplotlib inline')
 
 
+# ## The pattern will look for "inner corners" e.g. black touching the black square
+
 # In[2]:
 
-# Prepare object points
-nx = 9 # Number of inside corners in any given row
-ny = 6 # Number of inside corners in any given column
+nx = 9 # horizontal
+ny = 6 # vertical
 
 
 # In[3]:
@@ -42,24 +43,24 @@ print("found", len(images), "images" )
 # Initialise arrays
 
 # Object Points: 3d point in real world space
-objpoints = []
+object_point_list = []
 
 #Image Points: 2d points in image plane.
-imgpoints = []
+image_points_list = []
 
 
 # In[5]:
 
-# Generate object points
+# Generate 3D object points
+object_points = np.zeros((nx*ny, 3), np.float32)
+object_points[:,:2] = np.mgrid[0:nx, 0:ny].T.reshape(-1, 2)
 
-# 3D zeros
-objp = np.zeros((nx*ny, 3), np.float32)
-objp[:,:2] = np.mgrid[0:nx, 0:ny].T.reshape(-1, 2)
-
-print("first 5 elements:\n", objp[0:5])
+print("first 5 elements:\n", object_points[0:5])
 
 
 # In[6]:
+
+# see: http://docs.opencv.org/trunk/dc/dbb/tutorial_py_calibration.html
 
 termination_criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 chessboard_dimentions = (nx, ny)
@@ -74,33 +75,42 @@ for file_name in images:
     # - image_gray
     # - the chessboard to be used is 9x6
     # - flags = None
-    ret, corners = cv2.findChessboardCorners(image_gray, chessboard_dimentions,None)
-
-    # If found, add object points, image points (after refining them)
-    if ret == True:
+    has_found, corners = cv2.findChessboardCorners(image_gray, chessboard_dimentions, None)
+    
+    if has_found == True:
         # fill in ObjectPoints
-        objpoints.append(objp)
+        object_point_list.append(object_points)
 
-        corners2 = cv2.cornerSubPix(image_gray, corners,(11,11),(-1,-1), termination_criteria)
+        corners2 = cv2.cornerSubPix(image_gray, corners, (11,11), (-1,-1), termination_criteria)
         # fill in ImagePoints
-        imgpoints.append(corners2)
+        image_points_list.append(corners2)
 
         # Draw and display the corners
         # I have to clone/copy the image because cv2.drawChessboardCorners changes the content
-        image_corners = cv2.drawChessboardCorners(image_original.copy(), chessboard_dimentions, corners2, ret)
+        image_corners = cv2.drawChessboardCorners(image_original.copy(), chessboard_dimentions, corners2, has_found)
         
         plt.figure()
         plot_image = np.concatenate((image_original, image_corners), axis=1)
         plt.imshow(plot_image)
+        plt.show()  
+    else:
+        print("The", chessboard_dimentions, "chessboard pattern was not found in file", file_name)
+        plt.figure()
+        plt.imshow(image_original)
         plt.show()
-        #cv2.waitKey(500)
-
-#cv2.destroyAllWindows()
+        
 
 
 # In[7]:
 
-ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, image_gray.shape[::-1],None,None)
+# It returns the camera matrix, distortion coefficients, rotation and translation vectors
+ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
+    object_point_list, 
+    image_points_list, 
+    image_gray.shape[::-1], 
+    None, 
+    None)
+
 result=dict()
 result['ret']=ret
 result['matrix']=np.array(mtx).tolist()
@@ -111,7 +121,7 @@ result['tvecs']=np.array(tvecs).tolist()
 
 # In[8]:
 
-with open('calib.json', 'w') as f:
+with open('calibrate_camera_output.json', 'w') as f:
     json.dump(result, f, indent=2, sort_keys=True)
 
 
