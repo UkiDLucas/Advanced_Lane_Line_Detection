@@ -58,7 +58,7 @@ object_points[:,:2] = np.mgrid[0:nx, 0:ny].T.reshape(-1, 2)
 print("first 5 elements:\n", object_points[0:5])
 
 
-# In[6]:
+# In[18]:
 
 # see: http://docs.opencv.org/trunk/dc/dbb/tutorial_py_calibration.html
 
@@ -76,7 +76,7 @@ for file_name in images:
     # - the chessboard to be used is 9x6
     # - flags = None
     has_found, corners = cv2.findChessboardCorners(image_gray, chessboard_dimentions, None)
-    
+    print("processing:", file_name)
     if has_found == True:
         # fill in ObjectPoints
         object_point_list.append(object_points)
@@ -101,10 +101,12 @@ for file_name in images:
         
 
 
-# In[7]:
+# # Calibrate using points
 
-# It returns the camera matrix, distortion coefficients, rotation and translation vectors
-ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
+# In[9]:
+
+# See below to understand returned values
+ret, matrix, distortion, rvecs, tvecs = cv2.calibrateCamera(
     object_point_list, 
     image_points_list, 
     image_gray.shape[::-1], 
@@ -113,16 +115,42 @@ ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
 
 result=dict()
 result['ret']=ret
-result['matrix']=np.array(mtx).tolist()
-result['dist']=np.array(dist).tolist()
-result['rvecs']=np.array(rvecs).tolist()
-result['tvecs']=np.array(tvecs).tolist()
+result['matrix']=np.array(matrix).tolist() # camera matrix
+result['dist']=np.array(distortion).tolist() # distortion coefficients
+result['rvecs']=np.array(rvecs).tolist() # rotation vectors
+result['tvecs']=np.array(tvecs).tolist() # translation vectors
 
 
-# In[8]:
+# In[10]:
 
 with open('calibrate_camera_output.json', 'w') as f:
-    json.dump(result, f, indent=2, sort_keys=True)
+    json.dump(result, f, indent=4, sort_keys = True)
+
+
+# In[12]:
+
+image_dimentions = image_gray.shape[:2] # height, width
+new_matrix, roi = cv2.getOptimalNewCameraMatrix(matrix, distortion, image_dimentions, 1, image_dimentions)
+
+
+# # Remove the distortion form the images
+
+# In[22]:
+
+for file_name in images:
+    print("processing:", file_name)
+    image_original = cv2.imread(file_name)
+
+    image = cv2.undistort(image_original, matrix, distortion, None, new_matrix)
+
+    plt.figure(figsize=(20,10))
+    #plt.figure()
+    plot_image = np.concatenate((image_original, image), axis=1)
+    plt.imshow(plot_image)
+    plt.show() 
+    # save to disk
+    if "calibration2.jpg" in file_name:
+        cv2.imwrite('image_undistorted_2.png', plot_image)
 
 
 # In[ ]:
