@@ -23,22 +23,33 @@ import matplotlib.pyplot as plt
 get_ipython().magic('matplotlib inline')
 
 
-# ## The pattern will look for "inner corners" e.g. black touching the black square
+# ## Useful helper method
 
 # In[2]:
+
+def plot_images(left_image, right_image):
+    plt.figure(figsize=(20,10))
+    plot_image = np.concatenate((left_image, right_image), axis=1)
+    plt.imshow(plot_image)
+    plt.show() 
+
+
+# ## The pattern will look for "inner corners" e.g. black touching the black square
+
+# In[3]:
 
 nx = 9 # horizontal
 ny = 6 # vertical
 
 
-# In[3]:
+# In[4]:
 
 # read a list of files using a parern
 images = glob.glob("camera_cal/calibration*.jpg") # e.g. calibration19.jpg
 print("found", len(images), "images" )
 
 
-# In[4]:
+# In[5]:
 
 # Initialise arrays
 
@@ -49,7 +60,7 @@ object_point_list = []
 image_points_list = []
 
 
-# In[5]:
+# In[6]:
 
 # Generate 3D object points
 object_points = np.zeros((nx*ny, 3), np.float32)
@@ -58,7 +69,7 @@ object_points[:,:2] = np.mgrid[0:nx, 0:ny].T.reshape(-1, 2)
 print("first 5 elements:\n", object_points[0:5])
 
 
-# In[18]:
+# In[7]:
 
 # see: http://docs.opencv.org/trunk/dc/dbb/tutorial_py_calibration.html
 
@@ -88,11 +99,8 @@ for file_name in images:
         # Draw and display the corners
         # I have to clone/copy the image because cv2.drawChessboardCorners changes the content
         image_corners = cv2.drawChessboardCorners(image_original.copy(), chessboard_dimentions, corners2, has_found)
-        
-        plt.figure()
-        plot_image = np.concatenate((image_original, image_corners), axis=1)
-        plt.imshow(plot_image)
-        plt.show()  
+          
+        plot_images(image_original, image_corners)
     else:
         print("The", chessboard_dimentions, "chessboard pattern was not found in file", file_name)
         plt.figure()
@@ -103,9 +111,13 @@ for file_name in images:
 
 # # Calibrate using points
 
-# In[9]:
+# In[8]:
 
-# See below to understand returned values
+# Returns:
+# - camera matrix
+# - distortion coefficients
+# - rotation vectors
+# - translation vectors
 ret, matrix, distortion, rvecs, tvecs = cv2.calibrateCamera(
     object_point_list, 
     image_points_list, 
@@ -113,21 +125,10 @@ ret, matrix, distortion, rvecs, tvecs = cv2.calibrateCamera(
     None, 
     None)
 
-result=dict()
-result['ret']=ret
-result['matrix']=np.array(matrix).tolist() # camera matrix
-result['dist']=np.array(distortion).tolist() # distortion coefficients
-result['rvecs']=np.array(rvecs).tolist() # rotation vectors
-result['tvecs']=np.array(tvecs).tolist() # translation vectors
 
+# ## This instead of concatinating corners, STRETCH them
 
-# In[10]:
-
-with open('calibrate_camera_output.json', 'w') as f:
-    json.dump(result, f, indent=4, sort_keys = True)
-
-
-# In[12]:
+# In[9]:
 
 image_dimentions = image_gray.shape[:2] # height, width
 new_matrix, roi = cv2.getOptimalNewCameraMatrix(matrix, distortion, image_dimentions, 1, image_dimentions)
@@ -135,22 +136,24 @@ new_matrix, roi = cv2.getOptimalNewCameraMatrix(matrix, distortion, image_diment
 
 # # Remove the distortion form the images
 
-# In[22]:
+# In[10]:
 
 for file_name in images:
     print("processing:", file_name)
     image_original = cv2.imread(file_name)
 
-    image = cv2.undistort(image_original, matrix, distortion, None, new_matrix)
+    image = cv2.undistort(image_original, matrix, distortion, None, None) #new_matrix 
+    plot_images(image_original, image)
+    
+    image = cv2.undistort(image_original, matrix, distortion, None, new_matrix ) 
+    plot_images(image_original, image)
 
-    plt.figure(figsize=(20,10))
-    #plt.figure()
-    plot_image = np.concatenate((image_original, image), axis=1)
-    plt.imshow(plot_image)
-    plt.show() 
-    # save to disk
-    if "calibration2.jpg" in file_name:
-        cv2.imwrite('image_undistorted_2.png', plot_image)
+
+# In[12]:
+
+# save to disk
+if "calibration2.jpg" in file_name:
+    cv2.imwrite('image_undistorted_2.png', image)
 
 
 # In[ ]:
