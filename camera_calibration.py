@@ -6,30 +6,33 @@
 
 # ## Motivation
 # 
-# The raw camera data usually has a certain level of distortion caused by lense shape, this is especially pronounced on the edges of the image. The correction is essential in applications like image recognition used in autonomous vehicles, robotics and even in 3D printing.
+# The raw camera data usually has a certain level of distortion caused by lense shape, this is especially pronounced on the edges of the image. The correction is essential in applications like image recognition where mainitaining the shape is essential, especially in autonomous vehicles, robotics and even in 3D printing.
 
 # ## Solution approach
 # 
-# The common solution is to compare a **known shape object e.g. a chessboard** with the image taken, then calculate this **specific camera's** adjustment parameters that then can be applied to every frame taken by the camera. If the camera changes, the parameters have to be recalibrated.
+# The common solution is to compare a **known shape object e.g. a chessboard** with the image taken, then calculate this **specific camera's** adjustment parameters that then can be applied to every frame taken by the camera. If the camera changes (camera lense type, resolution, image size) in the set up, the new chessboard images have to be taken and calibration process repeated.
+# 
+# The angle of chessboard in relation to the camera does not matter, in fact the sample pictures should be taken from various angles. Only the pictures with **whole chessboard showing** will work.
+# 
+# You should take **many, at least 20 sample images**, any less and the learning process renders images that are not a well corrected.
+
+# In[1]:
+
+#!/usr/bin/python3
+import numpy as np # used for lists, matrixes, etc.
+import cv2 # we will use OpenCV library
+get_ipython().magic('matplotlib inline')
+
 
 # ## Get list of sample chessboard images by this camera
 
-# In[1]:
+# In[2]:
 
 # read a list of files using a parern
 import glob
 image_file_names = glob.glob("camera_cal/calibration*.jpg") # e.g. calibration19.jpg
-print("found", len(image_file_names), "image file names" )
+print("found", len(image_file_names), "calibration image samples" )
 print("example", image_file_names[0])
-
-
-# In[2]:
-
-#!/usr/bin/python3
-import numpy as np
-import cv2
-import json
-get_ipython().magic('matplotlib inline')
 
 
 # ## Useful helper method
@@ -47,6 +50,7 @@ def plot_images(left_image, right_image):
 # In[4]:
 
 def get_sample_gray(image_file_name: str):
+    import cv2
     image_original = cv2.imread(image_file_name)
     # convert BGR image to gray-scale
     image_gray = cv2.cvtColor(image_original, cv2.COLOR_BGR2GRAY)
@@ -111,7 +115,8 @@ def find_inside_corners(image_file_names: list, nx: int=9, ny: int=6):
 
             plot_images(image_original, image_corners)
         else: # not has_found
-            print("The", chessboard_dimentions, "chessboard pattern was not found")
+            print("The", chessboard_dimentions, 
+                  "chessboard pattern was not found, most likely partial chessboard showing")
             plt.figure()
             plt.imshow(image_original)
             plt.show()
@@ -184,7 +189,13 @@ for image_file_name in image_file_names:
 
 # # Conclusion
 # 
-# Assuming that I mask the curved edges, the **optimized** image provides a better camera calibration because it maintains more area of the image instead of cropping it. This is especially visible in the image camera_cal/calibration2.jpg
+# The **optimized** image provides a better camera calibration because it maintains more area of the image instead of cropping it. This is especially visible in the example below. I have manually drawn the **red lines** to show the straightness of on the **corrected image on the right**. The edge curvature plays mental/optical trics. 
+# 
+# I could improve even further if I took more chessboard samples. 
+# 
+# The final image might be cropped to hide the curved edges.
+# 
+# <img src="example_calibration.png" />
 
 # In[ ]:
 
