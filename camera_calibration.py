@@ -16,6 +16,13 @@
 # 
 # You should take **many, at least 20 sample images**, any less and the learning process renders images that are not a well corrected.
 
+# # Desired result (spoiler alert!)
+# 
+# For people who have no patience to read the whole paper I am including the final result:
+# 
+# 
+# <img src="example_calibration.png" />
+
 # In[1]:
 
 #!/usr/bin/python3
