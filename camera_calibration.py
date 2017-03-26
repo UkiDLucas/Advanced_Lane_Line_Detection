@@ -25,21 +25,15 @@
 
 # In[1]:
 
-#!/usr/bin/python3
 import numpy as np # used for lists, matrixes, etc.
 import cv2 # we will use OpenCV library
 get_ipython().magic('matplotlib inline')
 
 
-# ## Get list of sample chessboard images by this camera
-
 # In[2]:
 
-# read a list of files using a parern
-import glob
-image_file_names = glob.glob("camera_cal/calibration*.jpg") # e.g. calibration19.jpg
-print("found", len(image_file_names), "calibration image samples" )
-print("example", image_file_names[0])
+# If executing this file, set to True, if using as library, set to False
+should_run_tests_on_camera_calibration = True
 
 
 # ## Useful helper method
@@ -47,6 +41,7 @@ print("example", image_file_names[0])
 # In[3]:
 
 def plot_images(left_image, right_image):
+    import numpy as np
     import matplotlib.pyplot as plt
     plt.figure(figsize=(20,10))
     plot_image = np.concatenate((left_image, right_image), axis=1)
@@ -56,8 +51,8 @@ def plot_images(left_image, right_image):
 
 # In[4]:
 
-def get_sample_gray(image_file_name: str):
-    import cv2
+def __get_sample_gray(image_file_name: str):
+    import cv2 # we will use OpenCV library
     image_original = cv2.imread(image_file_name)
     # convert BGR image to gray-scale
     image_gray = cv2.cvtColor(image_original, cv2.COLOR_BGR2GRAY)
@@ -69,17 +64,19 @@ def get_sample_gray(image_file_name: str):
 
 # In[5]:
 
-# Chessboard dimentsions
-# nx = 9 # horizontal
-# ny = 6 # vertical
+def __find_inside_corners(image_file_names: list, nx: int=9, ny: int=6, verbose = False):
+    # Chessboard dimentsions
+    # nx = 9 # horizontal
+    # ny = 6 # vertical
 
-def find_inside_corners(image_file_names: list, nx: int=9, ny: int=6):
+    import cv2 # we will use OpenCV library
+    import numpy as np
     # Initialise arrays
 
-    # Object Points: 3d point in real world space
+    # Object Points: points on the original picture of chessboard
     object_point_list = []
 
-    #Image Points: 2d points in image plane.
+    #Image Points: points on the perfect 2D chessboard
     image_points_list = []
 
     # Generate 3D object points
@@ -94,8 +91,9 @@ def find_inside_corners(image_file_names: list, nx: int=9, ny: int=6):
     import matplotlib.pyplot as plt
     for image_file_name in image_file_names:
         
-        print("processing image:", image_file_name)
-        image_original, image_gray = get_sample_gray(image_file_name)
+        if verbose:
+            print("processing image:", image_file_name)
+        image_original, image_gray = __get_sample_gray(image_file_name)
 
         # Find the chess board corners
         # Paramters:
@@ -120,78 +118,127 @@ def find_inside_corners(image_file_names: list, nx: int=9, ny: int=6):
                 corners2, 
                 has_found)
 
-            plot_images(image_original, image_corners)
+            if verbose:
+                plot_images(image_original, image_corners)
         else: # not has_found
-            print("The", chessboard_dimentions, 
+            if verbose:
+                print("The", chessboard_dimentions, 
                   "chessboard pattern was not found, most likely partial chessboard showing")
-            plt.figure()
-            plt.imshow(image_original)
-            plt.show()
-        # end if
+                plt.figure()
+                plt.imshow(image_original)
+                plt.show()
+        # end if has_found
     # end for
     return object_point_list, image_points_list
         
 
 
+# # Calibrate using points
+
 # In[6]:
 
-object_point_list, image_points_list = find_inside_corners(image_file_names)
+def prep_calibration(image_file_names: list, use_optimized = True, verbose = False):
+    import cv2 # we will use OpenCV library
+    # find CORNERS
+    object_point_list, image_points_list = __find_inside_corners(image_file_names)
+    
+    # get smaple image, mostly for dimensions
+    image_original, image_gray = __get_sample_gray(image_file_names[1])
 
+    # Learn calibration
+    # Returns:
+    # - camera matrix
+    # - distortion coefficients
+    # - rotation vectors
+    # - translation vectors
+    has_sucess, matrix, distortion, rvecs, tvecs = cv2.calibrateCamera(
+        object_point_list, 
+        image_points_list, 
+        image_gray.shape[::-1], 
+        None, 
+        None)
+    
+    ## I can use this to improve the calibration (no cropped edges, but curved edges)
+    image_dimentions = image_original.shape[:2] # height, width
+    matrix_optimized, roi = cv2.getOptimalNewCameraMatrix(
+        matrix, 
+        distortion, 
+        image_dimentions, 
+        1, 
+        image_dimentions)
+    return matrix, matrix_optimized, distortion
 
-# # Calibrate using points
 
 # In[7]:
 
-image_original, image_gray = get_sample_gray(image_file_names[1])
+def apply_correction(
+    image_file_name: str = None, 
+    matrix = None, 
+    distortion = None,
+    matix_optimized = None): # optional
+    import cv2 # we will use OpenCV library
+    
+    print("Removing distortion in", image_file_name)
+    image = cv2.imread(image_file_name)
+    
+    image_corrected = cv2.undistort(image, matrix, distortion, None, matix_optimized)
+    
+    if matix_optimized is None:
+        print("NOT OPTIMIZED: edges are cropped.")
+    else:
+        print("OPTIMIZED: fuller image, but with edge distortion.")
+        
+    plot_images(image, image_corrected)
+    return image_corrected
 
-# Returns:
-# - camera matrix
-# - distortion coefficients
-# - rotation vectors
-# - translation vectors
-has_sucess, matrix, distortion, rvecs, tvecs = cv2.calibrateCamera(
-    object_point_list, 
-    image_points_list, 
-    image_gray.shape[::-1], 
-    None, 
-    None)
 
-
-# ## This instead of concatinating edges, stretch/curve them
+# ## Get list of sample chessboard images by this camera
 
 # In[8]:
 
-image_dimentions = image_original.shape[:2] # height, width
-optimized_matrix, roi = cv2.getOptimalNewCameraMatrix(
-    matrix, 
-    distortion, 
-    image_dimentions, 
-    1, 
-    image_dimentions)
+if should_run_tests_on_camera_calibration:
+    # read a list of files using a parern
+    import glob
+    image_file_names = glob.glob("camera_cal/calibration*.jpg") # e.g. calibration19.jpg
+    print("found", len(image_file_names), "calibration image samples" )
+    print("example", image_file_names[0])
+
+
+# In[9]:
+
+#if should_run_tests_on_camera_calibration:
+#    object_point_list, image_points_list = find_inside_corners(image_file_names)
+
+
+# In[10]:
+
+if should_run_tests_on_camera_calibration:
+    matrix, matrix_optimized, distortion = prep_calibration(image_file_names, use_optimized = True)
 
 
 # # Remove the distortion form the images
 
-# In[9]:
+# In[11]:
 
-for image_file_name in image_file_names:
-    
-    print("removing distortion in", image_file_name)
-    image_original = cv2.imread(image_file_name)
+if should_run_tests_on_camera_calibration:
+    image_file_name = "test_images/test1.jpg"
+    image_corrected = apply_correction(image_file_name, matrix, distortion)
+    image_corrected = apply_correction(image_file_name, matrix, distortion, matrix_optimized)
+    # save to disk
+    cv2.imwrite("output_images/" + "optimized_" + image_file_name, image_corrected)
 
-    print("without edge distortion (cropping)")
-    image1 = cv2.undistort(image_original, matrix, distortion, None, None)
-    plot_images(image_original, image1)
-    
-    # save to disk
-    cv2.imwrite("output_images/" + "unoptimized_" + image_file_name, image1)
-    
-    print("with edge distortion (curved)")
-    image2 = cv2.undistort(image_original, matrix, distortion, None, optimized_matrix ) 
-    plot_images(image_original, image2)
-    
-    # save to disk
-    cv2.imwrite("output_images/" + "optimized_" + image_file_name, image2)
+
+# In[12]:
+
+if should_run_tests_on_camera_calibration:
+    for image_file_name in image_file_names:
+        import cv2 # we will use OpenCV library
+
+        image_corrected = apply_correction(image_file_name, matrix, distortion)
+        image_corrected = apply_correction(image_file_name, matrix, distortion, matrix_optimized)
+
+        # save to disk
+        cv2.imwrite("output_images/" + "optimized_" + image_file_name, image_corrected)
 
 
 # # Conclusion
