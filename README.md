@@ -97,14 +97,13 @@ matrix, matrix_optimized, distortion = cam.prep_calibration(
     use_optimized = True)
 ```
 
+    [NbConvertApp] Converting notebook README.ipynb to markdown
+    [NbConvertApp] Writing 12114 bytes to README.md
+
+
 The result of calibration is following, **red lines were applied manually**:
 
 <img src="example_calibration.png" />
-
-
-```python
-
-```
 
 ## Pipeline (single images)
 
@@ -123,27 +122,86 @@ image_corrected = cam.apply_correction(image_file_name, matrix, distortion)
 image_corrected = cam.apply_correction(image_file_name, matrix, distortion, matrix_optimized)
 ```
 
-    Removing distortion in test_images/test1.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_9_1.png)
-
-
-    Removing distortion in test_images/test1.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_9_3.png)
-
+<hr />
 
 ### 2. Color transforms, gradients or other methods to create a thresholded binary image.
 
 #### A method or combination of methods (i.e., color transforms, gradients) has been used to create a binary image containing likely lane pixels. There is no "ground truth" here, just visual verification that the pixels identified as part of the lane lines are, in fact, part of the lines. Example binary images should be included in the writeup (or saved to a folder) and submitted with the project.
 
 I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in another_file.py).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+
+
+```python
+#### Traffic sign transform
+
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import os
+import perspective_transform as transform # local file
+
+image_path = "camera_cal/calibration8.jpg"
+#image_path = "test_images/stop_sign_angle_001.png"
+if os.path.isfile(image_path): 
+    image = mpimg.imread(image_path)
+
+# show in external window (to manually read the coordinates)
+%matplotlib qt 
+plt.imshow(image)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x12758a2e8>
+
+
+
+
+```python
+# show image inline (for readers of this notebook)
+%matplotlib inline
+plt.imshow(image)
+```
+
+
+```python
+# show image inline (for readers of this notebook)
+%matplotlib inline
+plt.imshow(image)
+plt.plot(280, 74, "*r") # top-left red star
+plt.plot(352, 83, "*r") # top-right red star
+plt.plot(354, 116, "*r") # bottom-right red star
+plt.plot(281, 108, "*r") # bottom-left red star
+```
+
+
+```python
+
+    
+warped = warp(image)
+
+if warped == None or warped.size == 0: 
+   print ('Warped image loaded is empty')
+   #sys.exit(1)
+    
+%matplotlib inline
+
+f, (ax1, ax2) = plt.subplots(1,2,figsize=(20,10))
+ax1.set_title("Original Image")
+ax1.imshow(image)
+
+ax2.set_title("Warped Image")
+#ax2.imshow(warped.reshape(warped.shape[0], warped.shape[1]), cmap=plt.cm.Greys)
+ax2.imshow(warped)
+```
+
+
+```python
+
+warped, M = corners_unwarp(img, nx, ny, mtx, dist)
+```
 
 ### 3. Perspective transform
 
@@ -211,20 +269,6 @@ Here I'll talk about the approach I took, what techniques I used, what worked an
 # see http://nbconvert.readthedocs.io/en/latest/usage.html
 !jupyter nbconvert --to markdown README.ipynb
 ```
-
-    [NbConvertApp] Converting notebook README.ipynb to markdown
-    [NbConvertApp] Writing 10934 bytes to README.md
-
-
-
-```python
-# see http://nbconvert.readthedocs.io/en/latest/usage.html
-!jupyter nbconvert --to html README.ipynb
-```
-
-    [NbConvertApp] Converting notebook README.ipynb to html
-    [NbConvertApp] Writing 276560 bytes to README.html
-
 
 
 ```python

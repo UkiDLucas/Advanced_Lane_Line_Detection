@@ -88,7 +88,7 @@
 # 
 # The very well documented code for this step is contained in document **camera_calibration**  available in HTML, ipynb and py formats. 
 
-# In[1]:
+# In[5]:
 
 import glob
 image_file_names = glob.glob("camera_cal/calibration*.jpg")
@@ -113,7 +113,7 @@ matrix, matrix_optimized, distortion = cam.prep_calibration(
 # 
 # The very well documented code for this step is contained in document **camera_calibration**  available in HTML, ipynb and py formats. 
 
-# In[2]:
+# In[ ]:
 
 image_file_name = "test_images/test1.jpg"
 image_corrected = cam.apply_correction(image_file_name, matrix, distortion)
@@ -128,9 +128,70 @@ image_corrected = cam.apply_correction(image_file_name, matrix, distortion, matr
 # 
 # I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in another_file.py).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
 
-# In[ ]:
+# In[4]:
 
 #### Traffic sign transform
+
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import os
+import perspective_transform as transform # local file
+
+image_path = "camera_cal/calibration8.jpg"
+#image_path = "test_images/stop_sign_angle_001.png"
+if os.path.isfile(image_path): 
+    image = mpimg.imread(image_path)
+
+# show in external window (to manually read the coordinates)
+get_ipython().magic('matplotlib qt')
+plt.imshow(image)
+
+
+# In[ ]:
+
+# show image inline (for readers of this notebook)
+get_ipython().magic('matplotlib inline')
+plt.imshow(image)
+
+
+# In[ ]:
+
+# show image inline (for readers of this notebook)
+get_ipython().magic('matplotlib inline')
+plt.imshow(image)
+plt.plot(280, 74, "*r") # top-left red star
+plt.plot(352, 83, "*r") # top-right red star
+plt.plot(354, 116, "*r") # bottom-right red star
+plt.plot(281, 108, "*r") # bottom-left red star
+
+
+# In[ ]:
+
+
+    
+warped = warp(image)
+
+if warped == None or warped.size == 0: 
+   print ('Warped image loaded is empty')
+   #sys.exit(1)
+    
+get_ipython().magic('matplotlib inline')
+
+f, (ax1, ax2) = plt.subplots(1,2,figsize=(20,10))
+ax1.set_title("Original Image")
+ax1.imshow(image)
+
+ax2.set_title("Warped Image")
+#ax2.imshow(warped.reshape(warped.shape[0], warped.shape[1]), cmap=plt.cm.Greys)
+ax2.imshow(warped)
+
+
+# In[ ]:
+
+
+warped, M = corners_unwarp(img, nx, ny, mtx, dist)
 
 
 # ### 3. Perspective transform
@@ -194,7 +255,7 @@ image_corrected = cam.apply_correction(image_file_name, matrix, distortion, matr
 # 
 # Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
 
-# In[3]:
+# In[ ]:
 
 # see http://nbconvert.readthedocs.io/en/latest/usage.html
 get_ipython().system('jupyter nbconvert --to markdown README.ipynb')
