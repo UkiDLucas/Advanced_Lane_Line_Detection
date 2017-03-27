@@ -16,6 +16,13 @@
 # 
 # You should take **many, at least 20 sample images**, any less and the learning process renders images that are not a well corrected.
 
+# In[1]:
+
+# When working on this file set to True, 
+# when using as library, or commiting set to False
+should_run_tests_on_camera_calibration = False
+
+
 # # Desired result (spoiler alert!)
 # 
 # For people who have no patience to read the whole paper I am including the final result:
@@ -23,17 +30,11 @@
 # 
 # <img src="example_calibration.png" />
 
-# In[1]:
+# In[2]:
 
 import numpy as np # used for lists, matrixes, etc.
 import cv2 # we will use OpenCV library
 get_ipython().magic('matplotlib inline')
-
-
-# In[2]:
-
-# If executing this file, set to True, if using as library, set to False
-should_run_tests_on_camera_calibration = True
 
 
 # ## Useful helper method
@@ -251,7 +252,8 @@ if should_run_tests_on_camera_calibration:
 # 
 # <img src="example_calibration.png" />
 
-# In[ ]:
+# In[13]:
 
-
+# see http://nbconvert.readthedocs.io/en/latest/usage.html
+get_ipython().system('jupyter nbconvert --to markdown README.ipynb')
 
