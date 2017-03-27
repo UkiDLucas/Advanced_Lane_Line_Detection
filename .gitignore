@@ -7,7 +7,7 @@ __pycache__/
 .hypothesis/
 .installed.cfg
 .ipynb_checkpoints
-.ipynb_checkpoints/*
+.ipynb_checkpoints/
 .Python
 .python-version
 .ropeproject
@@ -27,6 +27,7 @@ __pycache__/
 *.so
 *.spec
 *$py.class
+*checkpoint.ipynb
 build/
 celerybeat-schedule
 coverage.xml
