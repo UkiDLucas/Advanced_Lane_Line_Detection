@@ -1,46 +1,44 @@
 
-# coding: utf-8
+# Camera calibration: adjusting camera lense edge distortion
+by Uki D. Lucas
 
-# # Camera calibration: adjusting camera lense edge distortion
-# by Uki D. Lucas
+## Motivation
 
-# ## Motivation
-# 
-# The raw camera data usually has a certain level of distortion caused by lense shape, this is especially pronounced on the edges of the image. The correction is essential in applications like image recognition where mainitaining the shape is essential, especially in autonomous vehicles, robotics and even in 3D printing.
+The raw camera data usually has a certain level of distortion caused by lense shape, this is especially pronounced on the edges of the image. The correction is essential in applications like image recognition where mainitaining the shape is essential, especially in autonomous vehicles, robotics and even in 3D printing.
 
-# ## Solution approach
-# 
-# The common solution is to compare a **known shape object e.g. a chessboard** with the image taken, then calculate this **specific camera's** adjustment parameters that then can be applied to every frame taken by the camera. If the camera changes (camera lense type, resolution, image size) in the set up, the new chessboard images have to be taken and calibration process repeated.
-# 
-# The angle of chessboard in relation to the camera does not matter, in fact the sample pictures should be taken from various angles. Only the pictures with **whole chessboard showing** will work.
-# 
-# You should take **many, at least 20 sample images**, any less and the learning process renders images that are not a well corrected.
+## Solution approach
 
-# In[1]:
+The common solution is to compare a **known shape object e.g. a chessboard** with the image taken, then calculate this **specific camera's** adjustment parameters that then can be applied to every frame taken by the camera. If the camera changes (camera lense type, resolution, image size) in the set up, the new chessboard images have to be taken and calibration process repeated.
 
+The angle of chessboard in relation to the camera does not matter, in fact the sample pictures should be taken from various angles. Only the pictures with **whole chessboard showing** will work.
+
+You should take **many, at least 20 sample images**, any less and the learning process renders images that are not a well corrected.
+
+
+```python
 # When working on this file set to True, 
 # when using as library, or commiting set to False
 should_run_tests_on_camera_calibration = False
+```
+
+# Desired result (spoiler alert!)
+
+For people who have no patience to read the whole paper I am including the final result:
 
 
-# # Desired result (spoiler alert!)
-# 
-# For people who have no patience to read the whole paper I am including the final result:
-# 
-# 
-# <img src="example_calibration.png" />
+<img src="example_calibration.png" />
 
-# In[2]:
 
+```python
 import numpy as np # used for lists, matrixes, etc.
 import cv2 # we will use OpenCV library
-get_ipython().magic('matplotlib inline')
+%matplotlib inline
+```
+
+## Useful helper method
 
 
-# ## Useful helper method
-
-# In[3]:
-
+```python
 def plot_images(left_image, right_image):
     import numpy as np
     import matplotlib.pyplot as plt
@@ -48,10 +46,10 @@ def plot_images(left_image, right_image):
     plot_image = np.concatenate((left_image, right_image), axis=1)
     plt.imshow(plot_image)
     plt.show() 
+```
 
 
-# In[4]:
-
+```python
 def __get_sample_gray(image_file_name: str):
     import cv2 # we will use OpenCV library
     image_original = cv2.imread(image_file_name)
@@ -59,12 +57,12 @@ def __get_sample_gray(image_file_name: str):
     image_gray = cv2.cvtColor(image_original, cv2.COLOR_BGR2GRAY)
     return image_original, image_gray
     
+```
+
+## The pattern will look for "inner corners" e.g. black touching the black square
 
 
-# ## The pattern will look for "inner corners" e.g. black touching the black square
-
-# In[5]:
-
+```python
 def __find_inside_corners(image_file_names: list, nx: int=9, ny: int=6, verbose = False):
     # Chessboard dimentsions
     # nx = 9 # horizontal
@@ -132,12 +130,12 @@ def __find_inside_corners(image_file_names: list, nx: int=9, ny: int=6, verbose 
     # end for
     return object_point_list, image_points_list
         
+```
+
+# Calibrate using points
 
 
-# # Calibrate using points
-
-# In[6]:
-
+```python
 def prep_calibration(image_file_names: list, use_optimized = True, verbose = False):
     import cv2 # we will use OpenCV library
     # find CORNERS
@@ -168,10 +166,10 @@ def prep_calibration(image_file_names: list, use_optimized = True, verbose = Fal
         1, 
         image_dimentions)
     return matrix, matrix_optimized, distortion
+```
 
 
-# In[7]:
-
+```python
 def apply_correction(
     image_file_name: str = None, 
     matrix = None, 
@@ -191,46 +189,46 @@ def apply_correction(
         
     plot_images(image, image_corrected)
     return image_corrected
+```
+
+## Get list of sample chessboard images by this camera
 
 
-# ## Get list of sample chessboard images by this camera
-
-# In[8]:
-
+```python
 if should_run_tests_on_camera_calibration:
     # read a list of files using a parern
     import glob
     image_file_names = glob.glob("camera_cal/calibration*.jpg") # e.g. calibration19.jpg
     print("found", len(image_file_names), "calibration image samples" )
     print("example", image_file_names[0])
+```
 
 
-# In[9]:
-
+```python
 #if should_run_tests_on_camera_calibration:
 #    object_point_list, image_points_list = find_inside_corners(image_file_names)
+```
 
 
-# In[10]:
-
+```python
 if should_run_tests_on_camera_calibration:
     matrix, matrix_optimized, distortion = prep_calibration(image_file_names, use_optimized = True)
+```
+
+# Remove the distortion form the images
 
 
-# # Remove the distortion form the images
-
-# In[11]:
-
+```python
 if should_run_tests_on_camera_calibration:
     image_file_name = "test_images/test1.jpg"
     image_corrected = apply_correction(image_file_name, matrix, distortion)
     image_corrected = apply_correction(image_file_name, matrix, distortion, matrix_optimized)
     # save to disk
     cv2.imwrite("output_images/" + "optimized_" + image_file_name, image_corrected)
+```
 
 
-# In[12]:
-
+```python
 if should_run_tests_on_camera_calibration:
     for image_file_name in image_file_names:
         import cv2 # we will use OpenCV library
@@ -240,24 +238,24 @@ if should_run_tests_on_camera_calibration:
 
         # save to disk
         cv2.imwrite("output_images/" + "optimized_" + image_file_name, image_corrected)
+```
+
+# Conclusion
+
+The **optimized** image provides a better camera calibration because it maintains more area of the image instead of cropping it. This is especially visible in the example below. I have manually drawn the **red lines** to show the straightness of on the **corrected image on the right**. The edge curvature plays mental/optical trics. 
+
+I could improve even further if I took more chessboard samples. 
+
+The final image might be cropped to hide the curved edges.
+
+<img src="example_calibration.png" />
 
 
-# # Conclusion
-# 
-# The **optimized** image provides a better camera calibration because it maintains more area of the image instead of cropping it. This is especially visible in the example below. I have manually drawn the **red lines** to show the straightness of on the **corrected image on the right**. The edge curvature plays mental/optical trics. 
-# 
-# I could improve even further if I took more chessboard samples. 
-# 
-# The final image might be cropped to hide the curved edges.
-# 
-# <img src="example_calibration.png" />
+```python
+# see http://nbconvert.readthedocs.io/en/latest/usage.html
+!jupyter nbconvert --to markdown camera_calibration.ipynb
+```
 
-# In[ ]:
-
-
-
-
-# In[ ]:
-
-
+    [NbConvertApp] Converting notebook camera_calibration.ipynb to markdown
+    [NbConvertApp] Writing 8918 bytes to camera_calibration.md
 
