@@ -11820,9 +11820,7 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Image-References">Image References<a class="anchor-link" href="#Image-References">&#182;</a></h2><p>Undistorted
-<img src="examples/undistort_output.png" alt="Undistorted" /></p>
-<p>Road Transformed
+<h2 id="Image-References">Image References<a class="anchor-link" href="#Image-References">&#182;</a></h2><p>Road Transformed
 <img src="test_images/test1.jpg" alt="Road Transformed" /></p>
 <p>Binary Example
 <img src="examples/binary_combo_example.jpg" alt="Binary Example" /></p>
@@ -11861,8 +11859,6 @@ div#notebook {
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Camera-Calibration">Camera Calibration<a class="anchor-link" href="#Camera-Calibration">&#182;</a></h2><h3 id="1.-Briefly-state-how-you-computed-the-camera-matrix-and-distortion-coefficients.-Provide-an-example-of-a-distortion-corrected-calibration-image.">1. Briefly state how you computed the camera matrix and distortion coefficients. Provide an example of a distortion corrected calibration image.<a class="anchor-link" href="#1.-Briefly-state-how-you-computed-the-camera-matrix-and-distortion-coefficients.-Provide-an-example-of-a-distortion-corrected-calibration-image.">&#182;</a></h3><h4 id="OpenCV-functions-or-other-methods-were-used-to-calculate-the-correct-camera-matrix-and-distortion-coefficients-using-the-calibration-chessboard-images-provided-in-the-repository-(note-these-are-9x6-chessboard-images,-unlike-the-8x6-images-used-in-the-lesson).-The-distortion-matrix-should-be-used-to-un-distort-one-of-the-calibration-images-provided-as-a-demonstration-that-the-calibration-is-correct.-Example-of-undistorted-calibration-image-is-Included-in-the-writeup-(or-saved-to-a-folder).">OpenCV functions or other methods were used to calculate the correct camera matrix and distortion coefficients using the calibration chessboard images provided in the repository (note these are 9x6 chessboard images, unlike the 8x6 images used in the lesson). The distortion matrix should be used to un-distort one of the calibration images provided as a demonstration that the calibration is correct. Example of undistorted calibration image is Included in the writeup (or saved to a folder).<a class="anchor-link" href="#OpenCV-functions-or-other-methods-were-used-to-calculate-the-correct-camera-matrix-and-distortion-coefficients-using-the-calibration-chessboard-images-provided-in-the-repository-(note-these-are-9x6-chessboard-images,-unlike-the-8x6-images-used-in-the-lesson).-The-distortion-matrix-should-be-used-to-un-distort-one-of-the-calibration-images-provided-as-a-demonstration-that-the-calibration-is-correct.-Example-of-undistorted-calibration-image-is-Included-in-the-writeup-(or-saved-to-a-folder).">&#182;</a></h4><p>The very well documented code for this step is contained in document <strong>camera_calibration</strong>  available in HTML, ipynb and py formats.</p>
-<p>The result of calibration is following, red lines were applied manually:</p>
-<p><img src="example_calibration.png" /></p>
 
 </div>
 </div>
@@ -11876,7 +11872,7 @@ div#notebook {
 <span class="n">image_file_names</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;camera_cal/calibration*.jpg&quot;</span><span class="p">)</span>
 
 <span class="kn">import</span> <span class="nn">camera_calibration</span> <span class="k">as</span> <span class="nn">cam</span> <span class="c1"># locally in same directory</span>
-<span class="n">matrix</span><span class="p">,</span> <span class="n">matrix_optimized</span><span class="p">,</span> <span class="n">distortion</span> <span class="o">=</span> <span class="n">cam</span><span class="o">.</span><span class="n">define_calibration_parameters</span><span class="p">(</span>
+<span class="n">matrix</span><span class="p">,</span> <span class="n">matrix_optimized</span><span class="p">,</span> <span class="n">distortion</span> <span class="o">=</span> <span class="n">cam</span><span class="o">.</span><span class="n">prep_calibration</span><span class="p">(</span>
     <span class="n">image_file_names</span><span class="p">,</span> 
     <span class="n">use_optimized</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
 </pre></div>
@@ -11893,9 +11889,64 @@ div#notebook {
 <div class="prompt"></div>
 
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>found 20 calibration image samples
-example camera_cal/calibration1.jpg
-Removing distortion in test_images/test1.jpg
+<pre>[NbConvertApp] Converting notebook README.ipynb to markdown
+[NbConvertApp] Support files will be in README_files/
+[NbConvertApp] Making directory README_files
+[NbConvertApp] Making directory README_files
+[NbConvertApp] Writing 11368 bytes to README.md
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The result of calibration is following, <strong>red lines were applied manually</strong>:</p>
+<p><img src="example_calibration.png" /></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Pipeline-(single-images)">Pipeline (single images)<a class="anchor-link" href="#Pipeline-(single-images)">&#182;</a></h2><h3 id="1.-Distortion-corrected-image">1. Distortion-corrected image<a class="anchor-link" href="#1.-Distortion-corrected-image">&#182;</a></h3><h4 id="Distortion-correction-that-was-calculated-via-camera-calibration-has-been-correctly-applied-to-each-image.-An-example-of-a-distortion-corrected-image-should-be-included-in-the-writeup-(or-saved-to-a-folder)-and-submitted-with-the-project.">Distortion correction that was calculated via camera calibration has been correctly applied to each image. An example of a distortion corrected image should be included in the writeup (or saved to a folder) and submitted with the project.<a class="anchor-link" href="#Distortion-correction-that-was-calculated-via-camera-calibration-has-been-correctly-applied-to-each-image.-An-example-of-a-distortion-corrected-image-should-be-included-in-the-writeup-(or-saved-to-a-folder)-and-submitted-with-the-project.">&#182;</a></h4><p>To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:</p>
+<p>The very well documented code for this step is contained in document <strong>camera_calibration</strong>  available in HTML, ipynb and py formats.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">image_file_name</span> <span class="o">=</span> <span class="s2">&quot;test_images/test1.jpg&quot;</span>
+<span class="n">image_corrected</span> <span class="o">=</span> <span class="n">cam</span><span class="o">.</span><span class="n">apply_correction</span><span class="p">(</span><span class="n">image_file_name</span><span class="p">,</span> <span class="n">matrix</span><span class="p">,</span> <span class="n">distortion</span><span class="p">)</span>
+<span class="n">image_corrected</span> <span class="o">=</span> <span class="n">cam</span><span class="o">.</span><span class="n">apply_correction</span><span class="p">(</span><span class="n">image_file_name</span><span class="p">,</span> <span class="n">matrix</span><span class="p">,</span> <span class="n">distortion</span><span class="p">,</span> <span class="n">matrix_optimized</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area">
+<div class="prompt"></div>
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Removing distortion in test_images/test1.jpg
 NOT OPTIMIZED: edges are cropped.
 </pre>
 </div>
@@ -31645,46 +31696,6 @@ SUVORK5CYII=
 
 </div>
 
-<div class="output_area">
-<div class="prompt"></div>
-
-<div class="output_subarea output_text output_error">
-<pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-green-fg">&lt;ipython-input-1-f087e155065f&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span><span class="ansi-blue-fg">()</span>
-<span class="ansi-green-intense-fg ansi-bold">      2</span> image_file_names <span class="ansi-blue-fg">=</span> glob<span class="ansi-blue-fg">.</span>glob<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">&#34;camera_cal/calibration*.jpg&#34;</span><span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">      3</span> 
-<span class="ansi-green-fg">----&gt; 4</span><span class="ansi-red-fg"> </span><span class="ansi-green-fg">import</span> camera_calibration <span class="ansi-green-fg">as</span> cam <span class="ansi-red-fg"># locally in same directory</span>
-<span class="ansi-green-intense-fg ansi-bold">      5</span> matrix, matrix_optimized, distortion = cam.define_calibration_parameters(
-<span class="ansi-green-intense-fg ansi-bold">      6</span>     image_file_names<span class="ansi-blue-fg">,</span>
-
-<span class="ansi-green-fg">/Users/ukilucas/dev/CarND-p4-advanced-lane_lines-Uki/camera_calibration.py</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span><span class="ansi-blue-fg">()</span>
-<span class="ansi-green-intense-fg ansi-bold">    235</span>         <span class="ansi-green-fg">import</span> cv2 <span class="ansi-red-fg"># we will use OpenCV library</span>
-<span class="ansi-green-intense-fg ansi-bold">    236</span> 
-<span class="ansi-green-fg">--&gt; 237</span><span class="ansi-red-fg">         </span>image_corrected <span class="ansi-blue-fg">=</span> correct_camera_distortion<span class="ansi-blue-fg">(</span>image_file_name<span class="ansi-blue-fg">,</span> matrix<span class="ansi-blue-fg">,</span> distortion<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">    238</span>         image_corrected <span class="ansi-blue-fg">=</span> correct_camera_distortion<span class="ansi-blue-fg">(</span>image_file_name<span class="ansi-blue-fg">,</span> matrix<span class="ansi-blue-fg">,</span> distortion<span class="ansi-blue-fg">,</span> matrix_optimized<span class="ansi-blue-fg">)</span>
-<span class="ansi-green-intense-fg ansi-bold">    239</span> 
-
-<span class="ansi-red-fg">NameError</span>: name &#39;correct_camera_distortion&#39; is not defined</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">image_file_name</span> <span class="o">=</span> <span class="s2">&quot;test_images/test1.jpg&quot;</span>
-<span class="n">image_corrected</span> <span class="o">=</span> <span class="n">apply_correction</span><span class="p">(</span><span class="n">image_file_name</span><span class="p">,</span> <span class="n">matrix</span><span class="p">,</span> <span class="n">distortion</span><span class="p">)</span>
-<span class="n">image_corrected</span> <span class="o">=</span> <span class="n">apply_correction</span><span class="p">(</span><span class="n">image_file_name</span><span class="p">,</span> <span class="n">matrix</span><span class="p">,</span> <span class="n">distortion</span><span class="p">,</span> <span class="n">matrix_optimized</span><span class="p">)</span>
-</pre></div>
-
-</div>
 </div>
 </div>
 
@@ -31694,8 +31705,7 @@ SUVORK5CYII=
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Pipeline-(single-images)">Pipeline (single images)<a class="anchor-link" href="#Pipeline-(single-images)">&#182;</a></h2><h3 id="1.-Distortion-corrected-image">1. Distortion-corrected image<a class="anchor-link" href="#1.-Distortion-corrected-image">&#182;</a></h3><h4 id="Distortion-correction-that-was-calculated-via-camera-calibration-has-been-correctly-applied-to-each-image.-An-example-of-a-distortion-corrected-image-should-be-included-in-the-writeup-(or-saved-to-a-folder)-and-submitted-with-the-project.">Distortion correction that was calculated via camera calibration has been correctly applied to each image. An example of a distortion corrected image should be included in the writeup (or saved to a folder) and submitted with the project.<a class="anchor-link" href="#Distortion-correction-that-was-calculated-via-camera-calibration-has-been-correctly-applied-to-each-image.-An-example-of-a-distortion-corrected-image-should-be-included-in-the-writeup-(or-saved-to-a-folder)-and-submitted-with-the-project.">&#182;</a></h4><p>To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:</p>
-
+<hr />
 </div>
 </div>
 </div>
@@ -31708,6 +31718,19 @@ SUVORK5CYII=
 
 </div>
 </div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1">#### Traffic sign transform</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
 </div>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
@@ -31791,7 +31814,7 @@ dst = np.float32(
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># see http://nbconvert.readthedocs.io/en/latest/usage.html</span>
@@ -31802,17 +31825,23 @@ dst = np.float32(
 </div>
 </div>
 
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># see http://nbconvert.readthedocs.io/en/latest/usage.html</span>
-<span class="o">!</span>jupyter nbconvert --to html README.ipynb
-</pre></div>
+<div class="output_wrapper">
+<div class="output">
 
+
+<div class="output_area">
+<div class="prompt"></div>
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>[NbConvertApp] Converting notebook README.ipynb to markdown
+[NbConvertApp] Support files will be in README_files/
+[NbConvertApp] Making directory README_files
+[NbConvertApp] Making directory README_files
+[NbConvertApp] Writing 11368 bytes to README.md
+</pre>
 </div>
+</div>
+
 </div>
 </div>
 

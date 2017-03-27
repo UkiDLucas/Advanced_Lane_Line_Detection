@@ -45,8 +45,6 @@
 
 # ## Image References
 # 
-# Undistorted
-# <img src="examples/undistort_output.png" alt="Undistorted" />
 # 
 # Road Transformed
 # <img src="test_images/test1.jpg" alt="Road Transformed" />
@@ -89,12 +87,6 @@
 # #### OpenCV functions or other methods were used to calculate the correct camera matrix and distortion coefficients using the calibration chessboard images provided in the repository (note these are 9x6 chessboard images, unlike the 8x6 images used in the lesson). The distortion matrix should be used to un-distort one of the calibration images provided as a demonstration that the calibration is correct. Example of undistorted calibration image is Included in the writeup (or saved to a folder).
 # 
 # The very well documented code for this step is contained in document **camera_calibration**  available in HTML, ipynb and py formats. 
-# 
-# The result of calibration is following, red lines were applied manually:
-# 
-# <img src="example_calibration.png" />
-# 
-# 
 
 # In[1]:
 
@@ -102,17 +94,14 @@ import glob
 image_file_names = glob.glob("camera_cal/calibration*.jpg")
 
 import camera_calibration as cam # locally in same directory
-matrix, matrix_optimized, distortion = cam.define_calibration_parameters(
+matrix, matrix_optimized, distortion = cam.prep_calibration(
     image_file_names, 
     use_optimized = True)
 
 
-# In[ ]:
-
-image_file_name = "test_images/test1.jpg"
-image_corrected = apply_correction(image_file_name, matrix, distortion)
-image_corrected = apply_correction(image_file_name, matrix, distortion, matrix_optimized)
-
+# The result of calibration is following, **red lines were applied manually**:
+# 
+# <img src="example_calibration.png" />
 
 # ## Pipeline (single images)
 # 
@@ -122,12 +111,27 @@ image_corrected = apply_correction(image_file_name, matrix, distortion, matrix_o
 # 
 # To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
 # 
+# The very well documented code for this step is contained in document **camera_calibration**  available in HTML, ipynb and py formats. 
+
+# In[2]:
+
+image_file_name = "test_images/test1.jpg"
+image_corrected = cam.apply_correction(image_file_name, matrix, distortion)
+image_corrected = cam.apply_correction(image_file_name, matrix, distortion, matrix_optimized)
+
+
+# <hr />
 
 # ### 2. Color transforms, gradients or other methods to create a thresholded binary image.
 # 
 # #### A method or combination of methods (i.e., color transforms, gradients) has been used to create a binary image containing likely lane pixels. There is no "ground truth" here, just visual verification that the pixels identified as part of the lane lines are, in fact, part of the lines. Example binary images should be included in the writeup (or saved to a folder) and submitted with the project.
 # 
 # I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in another_file.py).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+
+# In[ ]:
+
+#### Traffic sign transform
+
 
 # ### 3. Perspective transform
 # 
@@ -190,16 +194,10 @@ image_corrected = apply_correction(image_file_name, matrix, distortion, matrix_o
 # 
 # Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
 
-# In[ ]:
+# In[3]:
 
 # see http://nbconvert.readthedocs.io/en/latest/usage.html
 get_ipython().system('jupyter nbconvert --to markdown README.ipynb')
-
-
-# In[ ]:
-
-# see http://nbconvert.readthedocs.io/en/latest/usage.html
-get_ipython().system('jupyter nbconvert --to html README.ipynb')
 
 
 # In[ ]:

@@ -43,8 +43,6 @@ We encourage you to go out and take video of your own, calibrate your camera and
 
 ## Image References
 
-Undistorted
-<img src="examples/undistort_output.png" alt="Undistorted" />
 
 Road Transformed
 <img src="test_images/test1.jpg" alt="Road Transformed" />
@@ -88,357 +86,25 @@ You're reading it!
 
 The very well documented code for this step is contained in document **camera_calibration**  available in HTML, ipynb and py formats. 
 
-The result of calibration is following, red lines were applied manually:
+
+```python
+import glob
+image_file_names = glob.glob("camera_cal/calibration*.jpg")
+
+import camera_calibration as cam # locally in same directory
+matrix, matrix_optimized, distortion = cam.prep_calibration(
+    image_file_names, 
+    use_optimized = True)
+```
+
+The result of calibration is following, **red lines were applied manually**:
 
 <img src="example_calibration.png" />
 
 
-
-
 ```python
-import camera_calibration # locally in same directory
-import glob
-image_file_names = glob.glob("camera_cal/calibration*.jpg")
-object_point_list, image_points_list = find_inside_corners(image_file_names)
+
 ```
-
-    found 20 calibration image samples
-    example camera_cal/calibration1.jpg
-    Removing distortion in test_images/test1.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_1.png)
-
-
-    Removing distortion in test_images/test1.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_3.png)
-
-
-    Removing distortion in camera_cal/calibration1.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_5.png)
-
-
-    Removing distortion in camera_cal/calibration1.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_7.png)
-
-
-    Removing distortion in camera_cal/calibration10.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_9.png)
-
-
-    Removing distortion in camera_cal/calibration10.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_11.png)
-
-
-    Removing distortion in camera_cal/calibration11.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_13.png)
-
-
-    Removing distortion in camera_cal/calibration11.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_15.png)
-
-
-    Removing distortion in camera_cal/calibration12.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_17.png)
-
-
-    Removing distortion in camera_cal/calibration12.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_19.png)
-
-
-    Removing distortion in camera_cal/calibration13.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_21.png)
-
-
-    Removing distortion in camera_cal/calibration13.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_23.png)
-
-
-    Removing distortion in camera_cal/calibration14.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_25.png)
-
-
-    Removing distortion in camera_cal/calibration14.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_27.png)
-
-
-    Removing distortion in camera_cal/calibration15.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_29.png)
-
-
-    Removing distortion in camera_cal/calibration15.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_31.png)
-
-
-    Removing distortion in camera_cal/calibration16.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_33.png)
-
-
-    Removing distortion in camera_cal/calibration16.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_35.png)
-
-
-    Removing distortion in camera_cal/calibration17.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_37.png)
-
-
-    Removing distortion in camera_cal/calibration17.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_39.png)
-
-
-    Removing distortion in camera_cal/calibration18.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_41.png)
-
-
-    Removing distortion in camera_cal/calibration18.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_43.png)
-
-
-    Removing distortion in camera_cal/calibration19.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_45.png)
-
-
-    Removing distortion in camera_cal/calibration19.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_47.png)
-
-
-    Removing distortion in camera_cal/calibration2.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_49.png)
-
-
-    Removing distortion in camera_cal/calibration2.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_51.png)
-
-
-    Removing distortion in camera_cal/calibration20.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_53.png)
-
-
-    Removing distortion in camera_cal/calibration20.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_55.png)
-
-
-    Removing distortion in camera_cal/calibration3.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_57.png)
-
-
-    Removing distortion in camera_cal/calibration3.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_59.png)
-
-
-    Removing distortion in camera_cal/calibration4.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_61.png)
-
-
-    Removing distortion in camera_cal/calibration4.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_63.png)
-
-
-    Removing distortion in camera_cal/calibration5.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_65.png)
-
-
-    Removing distortion in camera_cal/calibration5.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_67.png)
-
-
-    Removing distortion in camera_cal/calibration6.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_69.png)
-
-
-    Removing distortion in camera_cal/calibration6.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_71.png)
-
-
-    Removing distortion in camera_cal/calibration7.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_73.png)
-
-
-    Removing distortion in camera_cal/calibration7.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_75.png)
-
-
-    Removing distortion in camera_cal/calibration8.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_77.png)
-
-
-    Removing distortion in camera_cal/calibration8.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_79.png)
-
-
-    Removing distortion in camera_cal/calibration9.jpg
-    NOT OPTIMIZED: edges are cropped.
-
-
-
-![png](README_files/README_5_81.png)
-
-
-    Removing distortion in camera_cal/calibration9.jpg
-    OPTIMIZED: fuller image, but with edge distortion.
-
-
-
-![png](README_files/README_5_83.png)
-
 
 ## Pipeline (single images)
 
@@ -447,6 +113,30 @@ object_point_list, image_points_list = find_inside_corners(image_file_names)
 #### Distortion correction that was calculated via camera calibration has been correctly applied to each image. An example of a distortion corrected image should be included in the writeup (or saved to a folder) and submitted with the project.
 
 To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
+
+The very well documented code for this step is contained in document **camera_calibration**  available in HTML, ipynb and py formats. 
+
+
+```python
+image_file_name = "test_images/test1.jpg"
+image_corrected = cam.apply_correction(image_file_name, matrix, distortion)
+image_corrected = cam.apply_correction(image_file_name, matrix, distortion, matrix_optimized)
+```
+
+    Removing distortion in test_images/test1.jpg
+    NOT OPTIMIZED: edges are cropped.
+
+
+
+![png](README_files/README_9_1.png)
+
+
+    Removing distortion in test_images/test1.jpg
+    OPTIMIZED: fuller image, but with edge distortion.
+
+
+
+![png](README_files/README_9_3.png)
 
 
 ### 2. Color transforms, gradients or other methods to create a thresholded binary image.
@@ -522,11 +212,19 @@ Here I'll talk about the approach I took, what techniques I used, what worked an
 !jupyter nbconvert --to markdown README.ipynb
 ```
 
+    [NbConvertApp] Converting notebook README.ipynb to markdown
+    [NbConvertApp] Writing 10934 bytes to README.md
+
+
 
 ```python
 # see http://nbconvert.readthedocs.io/en/latest/usage.html
 !jupyter nbconvert --to html README.ipynb
 ```
+
+    [NbConvertApp] Converting notebook README.ipynb to html
+    [NbConvertApp] Writing 276560 bytes to README.html
+
 
 
 ```python
