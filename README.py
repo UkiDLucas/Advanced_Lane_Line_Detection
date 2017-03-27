@@ -88,7 +88,7 @@
 # 
 # The very well documented code for this step is contained in document **camera_calibration**  available in HTML, ipynb and py formats. 
 
-# In[5]:
+# In[1]:
 
 import glob
 image_file_names = glob.glob("camera_cal/calibration*.jpg")
@@ -113,7 +113,7 @@ matrix, matrix_optimized, distortion = cam.prep_calibration(
 # 
 # The very well documented code for this step is contained in document **camera_calibration**  available in HTML, ipynb and py formats. 
 
-# In[ ]:
+# In[2]:
 
 image_file_name = "test_images/test1.jpg"
 image_corrected = cam.apply_correction(image_file_name, matrix, distortion)
@@ -128,7 +128,7 @@ image_corrected = cam.apply_correction(image_file_name, matrix, distortion, matr
 # 
 # I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in another_file.py).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
 
-# In[4]:
+# In[3]:
 
 #### Traffic sign transform
 
@@ -147,6 +147,20 @@ if os.path.isfile(image_path):
 # show in external window (to manually read the coordinates)
 get_ipython().magic('matplotlib qt')
 plt.imshow(image)
+
+
+# In[ ]:
+
+nx = 9
+ny = 6
+import perspective_transformation as transform
+warped, M = transform.corners_unwarp(
+    image, 
+    nx, ny, 
+    camera_matrix=matrix, distortion_coefficients=distortion)
+
+get_ipython().magic('matplotlib inline')
+plt.imshow(warped)
 
 
 # In[ ]:
@@ -191,10 +205,9 @@ ax2.imshow(warped)
 # In[ ]:
 
 
-warped, M = corners_unwarp(img, nx, ny, mtx, dist)
 
 
-# ### 3. Perspective transform
+# ### 3. Perspective transform to bird-eye-view
 # 
 # #### OpenCV function or other method has been used to correctly rectify each image to a "birds-eye view". Transformed images should be included in the writeup (or saved to a folder) and submitted with the project.
 # 
