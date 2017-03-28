@@ -43,31 +43,6 @@
 # 
 # We encourage you to go out and take video of your own, calibrate your camera and show us how you would implement this project from scratch!
 
-# ## Image References
-# 
-# 
-# Road Transformed
-# <img src="test_images/test1.jpg" alt="Road Transformed" />
-# 
-# Binary Example
-# <img src="examples/binary_combo_example.jpg" alt="Binary Example" />
-#  
-# Warp Example
-# <img src="examples/warped_straight_lines.jpg" alt="Warp Example" />
-#  
-# Fit Visual
-# <img src="examples/color_fit_lines.jpg" alt="Fit Visual" />
-#  
-# Output
-# <img src="examples/example_output.jpg" alt="Output" />
-# 
-# Video 
-# 
-# <video width="320" height="240" controls>
-#   <source src="project_video.mp4" type="video/mp4">
-#   Your browser does not support the video tag.
-# </video>
-
 # # Rubric Points
 # 
 # Here I will consider the rubric points individually and describe how I addressed each point in my implementation.
@@ -80,26 +55,34 @@
 # 
 # You're reading it!
 
-# ## Camera Calibration
+# # Camera Calibration 
 # 
-# ### 1. Briefly state how you computed the camera matrix and distortion coefficients. Provide an example of a distortion corrected calibration image.
+# ## compute camera matrix and distortion coefficients)
 # 
 # #### OpenCV functions or other methods were used to calculate the correct camera matrix and distortion coefficients using the calibration chessboard images provided in the repository (note these are 9x6 chessboard images, unlike the 8x6 images used in the lesson). The distortion matrix should be used to un-distort one of the calibration images provided as a demonstration that the calibration is correct. Example of undistorted calibration image is Included in the writeup (or saved to a folder).
 # 
 # The very well documented code for this step is contained in document **camera_calibration**  available in HTML, ipynb and py formats. 
+
+# ### Read (20) sample chessboard images taken with the same camera
 
 # In[1]:
 
 import glob
 image_file_names = glob.glob("camera_cal/calibration*.jpg")
 
-import camera_calibration as cam # locally in same directory
-matrix, matrix_optimized, distortion = cam.prep_calibration(
+
+# ### Learn calibration based on sample images
+
+# In[2]:
+
+import camera_calibration as cam # local camera_calibration.py, same directory
+
+camera_matrix, matrix_optimized, distortion_coefficients = cam.prep_calibration(
     image_file_names, 
     use_optimized = True)
 
 
-# The result of calibration is following, **red lines were applied manually**:
+# ### The RESULT of calibration, **red lines were applied manually**:
 # 
 # <img src="example_calibration.png" />
 
@@ -113,7 +96,7 @@ matrix, matrix_optimized, distortion = cam.prep_calibration(
 # 
 # The very well documented code for this step is contained in document **camera_calibration**  available in HTML, ipynb and py formats. 
 
-# In[8]:
+# In[3]:
 
 #image_file_path = "test_images/test1.jpg"
 #image_file_path = "test_images/stop_sign_angle_001.png"
@@ -123,21 +106,35 @@ import matplotlib.image as mpimg
 if os.path.isfile(image_file_path): 
     image = mpimg.imread(image_file_path)
     
-# show in external window (to manually read the coordinates)
 import matplotlib.pyplot as plt
-get_ipython().magic('matplotlib qt')
+
+# show in external window to manually read the coordinates
+#%matplotlib qt 
+# show inline image for the reader
+get_ipython().magic('matplotlib inline')
 plt.imshow(image)
 
 
-# In[11]:
+# In[4]:
 
 get_ipython().magic('matplotlib inline')
-image_corrected1 = cam.apply_correction(image_file_path, matrix, distortion)
-image_corrected2 = cam.apply_correction(image_file_path, matrix, distortion, matrix_optimized)
+image_corrected1 = cam.apply_correction(image_file_path, camera_matrix, distortion_coefficients)
+
+
+# In[5]:
+
+get_ipython().magic('matplotlib inline')
+image_corrected2 = cam.apply_correction(image_file_path, camera_matrix, distortion_coefficients, matrix_optimized)
+
+
+# In[6]:
+
+# Continue with the corrected image
+
 plt.imshow(image_corrected1)
 
 
-# In[15]:
+# In[9]:
 
 def corners_unwarp(image, nx, ny, camera_matrix, distortion_coefficients, perspective_transform_matrix):
     """
@@ -151,6 +148,7 @@ def corners_unwarp(image, nx, ny, camera_matrix, distortion_coefficients, perspe
     - perspective_transform_matrix
     """
     import cv2
+    import numpy as np
     
     image_undist = cv2.undistort(
         image, 
@@ -189,7 +187,20 @@ def corners_unwarp(image, nx, ny, camera_matrix, distortion_coefficients, perspe
     # Return the resulting image and matrix
     return warped, M
 
-corners_unwarp(image_corrected1, nx=9, ny=6, camera_matrix=matrix, distortion_coefficients=distortion)
+
+
+# In[11]:
+
+warped, M = corners_unwarp(image_corrected1, 
+               nx=9, ny=6, 
+               camera_matrix=camera_matrix, 
+               distortion_coefficients=distortion_coefficients,
+               perspective_transform_matrix = None)
+
+get_ipython().magic('matplotlib inline')
+plt.imshow(warped)
+
+cam.plot_images(image, warped)
 
 
 # <hr />
@@ -199,22 +210,6 @@ corners_unwarp(image_corrected1, nx=9, ny=6, camera_matrix=matrix, distortion_co
 # #### A method or combination of methods (i.e., color transforms, gradients) has been used to create a binary image containing likely lane pixels. There is no "ground truth" here, just visual verification that the pixels identified as part of the lane lines are, in fact, part of the lines. Example binary images should be included in the writeup (or saved to a folder) and submitted with the project.
 # 
 # I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in another_file.py).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
-
-# In[ ]:
-
-BREAK
-nx = 9
-ny = 6
-import perspective_transformation as transform
-warped, M = transform.corners_unwarp(
-    image, 
-    nx, ny, 
-    camera_matrix=matrix, 
-    distortion_coefficients=distortion)
-
-get_ipython().magic('matplotlib inline')
-plt.imshow(warped)
-
 
 # In[ ]:
 
@@ -286,12 +281,22 @@ ax2.imshow(warped)
 #   695, 460 	  960, 0   
 # 
 # I verified that my perspective transform was working as expected by drawing the src and dst points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
+# 
+# 
+# 
+# Road Transformed
+# <img src="test_images/test1.jpg" alt="Road Transformed" />
 
 # ### 4. Identified lane-line pixels and fit their positions with a polynomial
 # 
 # #### Methods have been used to identify lane line pixels in the rectified binary image. The left and right line have been identified and fit with a curved functional form (e.g., spine or polynomial). Example images with line pixels identified and a fit overplotted should be included in the writeup (or saved to a folder) and submitted with the project.
 # 
 # Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+# 
+# 
+#  
+# Fit Visual
+# <img src="examples/color_fit_lines.jpg" alt="Fit Visual" />
 
 # ### 5. Calculate the radius of curvature of the lane and the position of the vehicle with respect to center.
 # 
@@ -304,6 +309,14 @@ ax2.imshow(warped)
 # #### The fit from the rectified image has been warped back onto the original image and plotted to identify the lane boundaries. This should demonstrate that the lane boundaries were correctly identified. An example image with lanes, curvature, and position from center should be included in the writeup (or saved to a folder) and submitted with the project.
 # 
 # I implemented this step in lines # through # in my code in yet_another_file.py in the function map_lane().  Here is an example of my result on a test image:
+# 
+# 
+# 
+# Binary Example
+# <img src="examples/binary_combo_example.jpg" alt="Binary Example" />
+#  
+# Warp Example
+# <img src="examples/warped_straight_lines.jpg" alt="Warp Example" />
 
 # # Pipeline (video)
 # 
@@ -312,6 +325,17 @@ ax2.imshow(warped)
 # #### The image processing pipeline that was established to find the lane lines in images successfully processes the video. The output here should be a new video where the lanes are identified in every frame, and outputs are generated regarding the radius of curvature of the lane and vehicle position within the lane. The pipeline should correctly map out curved lines and not fail when shadows or pavement color changes are present. The output video should be linked to in the writeup and/or saved and submitted with the project.
 # 
 # Here's a link to my video result
+# 
+# 
+# Output
+# <img src="examples/example_output.jpg" alt="Output" />
+# 
+# Video 
+# 
+# <video width="320" height="240" controls>
+#   <source src="project_video.mp4" type="video/mp4">
+#   Your browser does not support the video tag.
+# </video>
 
 # # Discussion
 # 
