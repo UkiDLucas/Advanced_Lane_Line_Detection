@@ -113,11 +113,83 @@ matrix, matrix_optimized, distortion = cam.prep_calibration(
 # 
 # The very well documented code for this step is contained in document **camera_calibration**  available in HTML, ipynb and py formats. 
 
-# In[2]:
+# In[8]:
 
-image_file_name = "test_images/test1.jpg"
-image_corrected = cam.apply_correction(image_file_name, matrix, distortion)
-image_corrected = cam.apply_correction(image_file_name, matrix, distortion, matrix_optimized)
+#image_file_path = "test_images/test1.jpg"
+#image_file_path = "test_images/stop_sign_angle_001.png"
+image_file_path = "camera_cal/calibration8.jpg"
+import os
+import matplotlib.image as mpimg
+if os.path.isfile(image_file_path): 
+    image = mpimg.imread(image_file_path)
+    
+# show in external window (to manually read the coordinates)
+import matplotlib.pyplot as plt
+get_ipython().magic('matplotlib qt')
+plt.imshow(image)
+
+
+# In[11]:
+
+get_ipython().magic('matplotlib inline')
+image_corrected1 = cam.apply_correction(image_file_path, matrix, distortion)
+image_corrected2 = cam.apply_correction(image_file_path, matrix, distortion, matrix_optimized)
+plt.imshow(image_corrected1)
+
+
+# In[15]:
+
+def corners_unwarp(image, nx, ny, camera_matrix, distortion_coefficients, perspective_transform_matrix):
+    """
+    Function takes: 
+    - an original image
+    - chessboard dimantions nx, ny e.g. 9, 6
+    - perspective_transform_matrix
+    - distortion coefficients
+    Returns:
+    - new perspective-transformed image
+    - perspective_transform_matrix
+    """
+    import cv2
+    
+    image_undist = cv2.undistort(
+        image, 
+        camera_matrix, 
+        distortion_coefficients, 
+        None, 
+        perspective_transform_matrix)
+    
+    image_gray = cv2.cvtColor(image_undist, cv2.COLOR_BGR2GRAY)
+    # Search for corners in the grayscaled image
+    ret, corners = cv2.findChessboardCorners(image_gray, (nx, ny), None)
+
+    if ret == True:
+        # If we found corners, draw them! (just for fun)
+        cv2.drawChessboardCorners(image_undist, (nx, ny), corners, ret)
+        # Choose offset from image corners to plot detected corners
+        # This should be chosen to present the result at the proper aspect ratio
+        # My choice of 100 pixels is not exact, but close enough for our purpose here
+        offset = 100 # offset for dst points
+        # Grab the image shape
+        img_size = (image_gray.shape[1], image_gray.shape[0])
+
+        # For source points I'm grabbing the outer four detected corners
+        src = np.float32([corners[0], corners[nx-1], corners[-1], corners[-nx]])
+        # For destination points, I'm arbitrarily choosing some points to be
+        # a nice fit for displaying our warped result 
+        # again, not exact, but close enough for our purposes
+        dst = np.float32([[offset, offset], [img_size[0]-offset, offset], 
+                                     [img_size[0]-offset, img_size[1]-offset], 
+                                     [offset, img_size[1]-offset]])
+        # Given src and dst points, calculate the perspective transform matrix
+        M = cv2.getPerspectiveTransform(src, dst)
+        # Warp the image using OpenCV warpPerspective()
+        warped = cv2.warpPerspective(image_undist, M, img_size)
+
+    # Return the resulting image and matrix
+    return warped, M
+
+corners_unwarp(image_corrected1, nx=9, ny=6, camera_matrix=matrix, distortion_coefficients=distortion)
 
 
 # <hr />
@@ -128,36 +200,17 @@ image_corrected = cam.apply_correction(image_file_name, matrix, distortion, matr
 # 
 # I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in another_file.py).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
 
-# In[3]:
-
-#### Traffic sign transform
-
-import numpy as np
-import cv2
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import os
-import perspective_transform as transform # local file
-
-image_path = "camera_cal/calibration8.jpg"
-#image_path = "test_images/stop_sign_angle_001.png"
-if os.path.isfile(image_path): 
-    image = mpimg.imread(image_path)
-
-# show in external window (to manually read the coordinates)
-get_ipython().magic('matplotlib qt')
-plt.imshow(image)
-
-
 # In[ ]:
 
+BREAK
 nx = 9
 ny = 6
 import perspective_transformation as transform
 warped, M = transform.corners_unwarp(
     image, 
     nx, ny, 
-    camera_matrix=matrix, distortion_coefficients=distortion)
+    camera_matrix=matrix, 
+    distortion_coefficients=distortion)
 
 get_ipython().magic('matplotlib inline')
 plt.imshow(warped)

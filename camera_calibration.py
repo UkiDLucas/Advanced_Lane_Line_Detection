@@ -173,14 +173,14 @@ def prep_calibration(image_file_names: list, use_optimized = True, verbose = Fal
 # In[7]:
 
 def apply_correction(
-    image_file_name: str = None, 
+    image_file_path = None, 
     matrix = None, 
     distortion = None,
     matix_optimized = None): # optional
     import cv2 # we will use OpenCV library
     
-    print("Removing distortion in", image_file_name)
-    image = cv2.imread(image_file_name)
+    print("Removing distortion for", image_file_path)
+    image = cv2.imread(image_file_path)
     
     image_corrected = cv2.undistort(image, matrix, distortion, None, matix_optimized)
     
