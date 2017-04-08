@@ -85,6 +85,7 @@ camera_matrix, matrix_optimized, distortion_coefficients = cam.prep_calibration(
 image_file_path = "camera_cal/calibration8.jpg"
 import os
 import matplotlib.image as mpimg
+
 if os.path.isfile(image_file_path): 
     image = mpimg.imread(image_file_path)
     
@@ -97,9 +98,9 @@ get_ipython().magic('matplotlib inline')
 plt.imshow(image)
 
 
-# ## Correcting the "fish-eye" effect caused by the shape of the camera lense 
+# ## 2.2. Correcting the "fish-eye" effect caused by the shape of the camera lense 
 # 
-# ## Not optimzed matrix (cutting off curving margins, loosing data)
+# ### 2.2.1. Not optimzed matrix (cutting off curving margins, loosing data)
 
 # In[4]:
 
@@ -107,9 +108,7 @@ get_ipython().magic('matplotlib inline')
 image_corrected1 = cam.apply_correction(image_file_path, camera_matrix, distortion_coefficients)
 
 
-# ## Correcting the "fish-eye" effect caused by the shape of the camera lense 
-# 
-# ## Optimzed matrix (curving margins, not loosing data)
+# ### 2.2.2. Optimzed matrix (curving margins, not loosing data)
 
 # In[5]:
 
@@ -117,14 +116,9 @@ get_ipython().magic('matplotlib inline')
 image_corrected2 = cam.apply_correction(image_file_path, camera_matrix, distortion_coefficients, matrix_optimized)
 
 
-# ## Continue with the corrected image
+# ## 2.3. Continue with the corrected image
 
 # In[6]:
-
-plt.imshow(image_corrected1)
-
-
-# In[7]:
 
 def corners_unwarp(image, nx, ny, camera_matrix, distortion_coefficients, perspective_transform_matrix):
     """
@@ -178,7 +172,7 @@ def corners_unwarp(image, nx, ny, camera_matrix, distortion_coefficients, perspe
     return warped, M
 
 
-# In[8]:
+# In[7]:
 
 warped, M = corners_unwarp(image_corrected1, 
                nx=9, ny=6, 
@@ -199,14 +193,14 @@ cam.plot_images(image, warped)
 # 
 # I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in another_file.py).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
 
-# In[9]:
+# In[8]:
 
 # show image inline (for readers of this notebook)
 get_ipython().magic('matplotlib inline')
 plt.imshow(image)
 
 
-# In[10]:
+# In[9]:
 
 # show image inline (for readers of this notebook)
 get_ipython().magic('matplotlib inline')
@@ -217,7 +211,7 @@ plt.plot(354, 116, "*r") # bottom-right red star
 plt.plot(281, 108, "*r") # bottom-left red star
 
 
-# In[11]:
+# In[10]:
 
 warped = warp(image)
     
