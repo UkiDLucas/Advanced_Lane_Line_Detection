@@ -244,73 +244,6 @@ plot_images(image, image_corrected2)
 
 # In[9]:
 
-def corners_unwarp(image, nx, ny, camera_matrix, distortion_coefficients, perspective_transform_matrix):
-    """
-    Function takes: 
-    - an original image
-    - chessboard dimantions nx, ny e.g. 9, 6
-    - perspective_transform_matrix
-    - distortion coefficients
-    Returns:
-    - new perspective-transformed image
-    - perspective_transform_matrix
-    """
-    import cv2
-    import numpy as np
-    
-    image_undist = cv2.undistort(
-        image, 
-        camera_matrix, 
-        distortion_coefficients, 
-        None, 
-        perspective_transform_matrix)
-    
-    image_gray = cv2.cvtColor(image_undist, cv2.COLOR_BGR2GRAY)
-    # Search for corners in the grayscaled image
-    ret, corners = cv2.findChessboardCorners(image_gray, (nx, ny), None)
-
-    if ret == True:
-        # If we found corners, draw them! (just for fun)
-        cv2.drawChessboardCorners(image_undist, (nx, ny), corners, ret)
-        # Choose offset from image corners to plot detected corners
-        # This should be chosen to present the result at the proper aspect ratio
-        # My choice of 100 pixels is not exact, but close enough for our purpose here
-        offset = 100 # offset for dst points
-        # Grab the image shape
-        img_size = (image_gray.shape[1], image_gray.shape[0])
-
-        # For source points I'm grabbing the outer four detected corners
-        src = np.float32([corners[0], corners[nx-1], corners[-1], corners[-nx]])
-        print("source\n", src)
-        # For destination points, I'm arbitrarily choosing some points to be
-        # a nice fit for displaying our warped result 
-        # again, not exact, but close enough for our purposes
-        dst = np.float32([[offset, offset], [img_size[0]-offset, offset], 
-                                     [img_size[0]-offset, img_size[1]-offset], 
-                                     [offset, img_size[1]-offset]])
-        print("destination\n", dst)
-        # Given src and dst points, calculate the perspective transform matrix
-        M = cv2.getPerspectiveTransform(src, dst)
-        # Warp the image using OpenCV warpPerspective()
-        warped = cv2.warpPerspective(image_undist, M, img_size)
-
-    # Return the resulting image and matrix
-    return warped, M
-
-
-# In[10]:
-
-warped, M = corners_unwarp(image_corrected1, 
-               nx=9, ny=6, 
-               camera_matrix=camera_matrix, 
-               distortion_coefficients=distortion_coefficients,
-               perspective_transform_matrix = None)
-
-plot_images(image, warped)
-
-
-# In[11]:
-
 import cv2 # we will use OpenCV library
 image = cv2.imread(image_file_path)
 image_corrected1 = cv2.undistort(image, camera_matrix, distortion_coefficients, None, None)
@@ -329,20 +262,8 @@ img_size = (image_corrected1.shape[1], image_corrected1.shape[0])
 # 
 # I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in another_file.py).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
 
-# In[18]:
+# In[10]:
 
-import numpy as np
-alibration8_source = np.float32([
-    [710,214],
-    [994,237],
-    [994,476],
-    [714,509]])
-
-calibration8_destination = np.float32([
-    [80,100],
-    [1180,100],
-    [1180,620],
-    [100,620]])
 
 
 #image_file_path = "test_images/test4.jpg"
@@ -352,22 +273,40 @@ image = cv2.imread(image_file_path)
 image_corrected3 = cv2.undistort(image, camera_matrix, distortion_coefficients, None, None)
 plot_images(image, image_corrected3)
 
+
+# In[11]:
+
+import numpy as np
+alibration8_source = np.float32([
+    [710,214],
+    [994,237],
+    [994,476],
+    [714,509]])
+
+calibration8_destination = np.float32([
+    [110,100],
+    [1180,100],
+    [1180,620],
+    [100,620]])
+
+
+
 # http://docs.opencv.org/3.1.0/da/d6e/tutorial_py_geometric_transformations.html
 M = cv2.getPerspectiveTransform(alibration8_source, calibration8_destination)
 warped = cv2.warpPerspective(image_corrected3, M, img_size)
 plot_images(image, warped)
 
 
-# In[13]:
+# In[12]:
 
-plt.imshow(image)
+plt.imshow(image_corrected3)
 plt.plot(280, 74, "*r") # top-left red star
 plt.plot(352, 83, "*r") # top-right red star
 plt.plot(354, 116, "*r") # bottom-right red star
 plt.plot(281, 108, "*r") # bottom-left red star
 
 
-# In[14]:
+# In[13]:
 
 STOP
 warped = warp(image)
