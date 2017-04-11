@@ -56695,38 +56695,6 @@ K/SGYRgpxwq9YRhGyrFCbxiGkXKs0BuGYaQcK/SGYRgp57/+VMKZTIhX4wAAAABJRU5ErkJggg==
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="3.-Perspective-transform-to-bird-eye-view">3. Perspective transform to bird-eye-view<a class="anchor-link" href="#3.-Perspective-transform-to-bird-eye-view">&#182;</a></h3><h4 id="OpenCV-function-or-other-method-has-been-used-to-correctly-rectify-each-image-to-a-&quot;birds-eye-view&quot;.-Transformed-images-should-be-included-in-the-writeup-(or-saved-to-a-folder)-and-submitted-with-the-project.">OpenCV function or other method has been used to correctly rectify each image to a "birds-eye view". Transformed images should be included in the writeup (or saved to a folder) and submitted with the project.<a class="anchor-link" href="#OpenCV-function-or-other-method-has-been-used-to-correctly-rectify-each-image-to-a-&quot;birds-eye-view&quot;.-Transformed-images-should-be-included-in-the-writeup-(or-saved-to-a-folder)-and-submitted-with-the-project.">&#182;</a></h4><p>The code for my perspective transform includes a function called warper(), which appears in lines 1 through 8 in the file example.py (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The warper() function takes as inputs an image (img), as well as source (src) and destination (dst) points.  I chose the hardcode the source and destination points in the following manner:</p>
-
-<pre><code>src = np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
-
-</code></pre>
-<p>This resulted in the following source and destination points:</p>
-<p>Source      Destination
-  585, 460       320, 0<br>
-  203, 720      320, 720<br>
-  1127, 720     960, 720<br>
-  695, 460       960, 0</p>
-<p>I verified that my perspective transform was working as expected by drawing the src and dst points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.</p>
-<p>Road Transformed
-<img src="test_images/test1.jpg" alt="Road Transformed" /></p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
 <h3 id="4.-Identified-lane-line-pixels-and-fit-their-positions-with-a-polynomial">4. Identified lane-line pixels and fit their positions with a polynomial<a class="anchor-link" href="#4.-Identified-lane-line-pixels-and-fit-their-positions-with-a-polynomial">&#182;</a></h3><h4 id="Methods-have-been-used-to-identify-lane-line-pixels-in-the-rectified-binary-image.-The-left-and-right-line-have-been-identified-and-fit-with-a-curved-functional-form-(e.g.,-spine-or-polynomial).-Example-images-with-line-pixels-identified-and-a-fit-overplotted-should-be-included-in-the-writeup-(or-saved-to-a-folder)-and-submitted-with-the-project.">Methods have been used to identify lane line pixels in the rectified binary image. The left and right line have been identified and fit with a curved functional form (e.g., spine or polynomial). Example images with line pixels identified and a fit overplotted should be included in the writeup (or saved to a folder) and submitted with the project.<a class="anchor-link" href="#Methods-have-been-used-to-identify-lane-line-pixels-in-the-rectified-binary-image.-The-left-and-right-line-have-been-identified-and-fit-with-a-curved-functional-form-(e.g.,-spine-or-polynomial).-Example-images-with-line-pixels-identified-and-a-fit-overplotted-should-be-included-in-the-writeup-(or-saved-to-a-folder)-and-submitted-with-the-project.">&#182;</a></h4><p>Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:</p>
 <p>Fit Visual
 <img src="examples/color_fit_lines.jpg" alt="Fit Visual" /></p>
