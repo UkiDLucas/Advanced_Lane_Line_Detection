@@ -51,9 +51,139 @@
 # 
 # <img src="example_calibration.png" />
 
-# ## 1.1. Read 20 sample chessboard images taken with the camera we want to callibrate
+# # Define Useful Functions
 
 # In[1]:
+
+def plot_images(left_image, right_image):
+    import numpy as np
+    import matplotlib.pyplot as plt
+    plt.figure(figsize=(20,10))
+    plot_image = np.concatenate((left_image, right_image), axis=1)
+    plt.imshow(plot_image)
+    plt.show() 
+
+
+# In[2]:
+
+def __get_sample_gray(image_file_name: str):
+    import cv2 # we will use OpenCV library
+    image_original = cv2.imread(image_file_name)
+    # convert BGR image to gray-scale
+    image_gray = cv2.cvtColor(image_original, cv2.COLOR_BGR2GRAY)
+    return image_original, image_gray
+
+
+# In[3]:
+
+def __find_inside_corners(image_file_names: list, nx: int=9, ny: int=6, verbose = False):
+    # Chessboard dimentsions
+    # nx = 9 # horizontal
+    # ny = 6 # vertical
+
+    import cv2 # we will use OpenCV library
+    import numpy as np
+    # Initialise arrays
+
+    # Object Points: points on the original picture of chessboard
+    object_point_list = []
+
+    #Image Points: points on the perfect 2D chessboard
+    image_points_list = []
+
+    # Generate 3D object points
+    object_points = np.zeros((nx*ny, 3), np.float32)
+    object_points[:,:2] = np.mgrid[0:nx, 0:ny].T.reshape(-1, 2)
+
+    #print("first 5 elements:\n", object_points[0:5])
+    # see: http://docs.opencv.org/trunk/dc/dbb/tutorial_py_calibration.html
+
+    termination_criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+    chessboard_dimentions = (nx, ny)
+    import matplotlib.pyplot as plt
+    for image_file_name in image_file_names:
+        
+        if verbose:
+            print("processing image:", image_file_name)
+        image_original, image_gray = __get_sample_gray(image_file_name)
+
+        # Find the chess board corners
+        # Paramters:
+        # - image_gray
+        # - the chessboard to be used is 9x6
+        # - flags = None
+        has_found, corners = cv2.findChessboardCorners(image_gray, chessboard_dimentions, None)
+        
+        if has_found == True:
+            # fill in ObjectPoints
+            object_point_list.append(object_points)
+
+            corners2 = cv2.cornerSubPix(image_gray, corners, (11,11), (-1,-1), termination_criteria)
+            # fill in ImagePoints
+            image_points_list.append(corners2)
+
+            # Draw and display the corners
+            # I have to clone/copy the image because cv2.drawChessboardCorners changes the content
+            image_corners = cv2.drawChessboardCorners(
+                image_original.copy(), 
+                chessboard_dimentions, 
+                corners2, 
+                has_found)
+
+            if verbose:
+                plot_images(image_original, image_corners)
+        else: # not has_found
+            if verbose:
+                print("The", chessboard_dimentions, 
+                  "chessboard pattern was not found, most likely partial chessboard showing")
+                plt.figure()
+                plt.imshow(image_original)
+                plt.show()
+        # end if has_found
+    # end for
+    return object_point_list, image_points_list
+
+
+# In[4]:
+
+def prep_calibration(image_file_names: list, use_optimized = True, verbose = False):
+    
+    # we will use OpenCV library
+    import cv2 
+    
+    # find CORNERS
+    object_point_list, image_points_list = __find_inside_corners(image_file_names)
+    
+    # get sample image, mostly for dimensions
+    image_original, image_gray = __get_sample_gray(image_file_names[1])
+
+    # Learn calibration
+    # Returns:
+    # - camera matrix
+    # - distortion coefficients
+    # - rotation vectors
+    # - translation vectors
+    has_sucess, matrix, distortion, rvecs, tvecs = cv2.calibrateCamera(
+        object_point_list, 
+        image_points_list, 
+        image_gray.shape[::-1], 
+        None, 
+        None)
+    
+    ## I can use this to improve the calibration (no cropped edges, but curved edges)
+    image_dimentions = image_original.shape[:2] # height, width
+    matrix_optimized, roi = cv2.getOptimalNewCameraMatrix(
+        matrix, 
+        distortion, 
+        image_dimentions, 
+        1, 
+        image_dimentions)
+    return matrix, matrix_optimized, distortion
+
+
+# ## 1.1. Read 20 sample chessboard images taken with the camera we want to callibrate
+
+# In[5]:
 
 import glob
 image_file_names = glob.glob("camera_cal/calibration*.jpg")
@@ -62,11 +192,11 @@ print(len(image_file_names), "images found")
 
 # ## 1.2. Learn calibration based on sample images
 
-# In[2]:
+# In[6]:
 
-import camera_calibration as cam # local camera_calibration.py, same directory
+#import camera_calibration as cam # local camera_calibration.py, same directory
 
-camera_matrix, matrix_optimized, distortion_coefficients = cam.prep_calibration(
+camera_matrix, matrix_optimized, distortion_coefficients = prep_calibration(
     image_file_names, 
     use_optimized = True)
 
@@ -78,7 +208,7 @@ camera_matrix, matrix_optimized, distortion_coefficients = cam.prep_calibration(
 # 
 # I have chosen an interesting chessboard image that will show a very dramatic transformation.
 
-# In[3]:
+# In[7]:
 
 #image_file_path = "test_images/test1.jpg"
 #image_file_path = "test_images/stop_sign_angle_001.png"
@@ -94,31 +224,25 @@ import matplotlib.pyplot as plt
 # show in external window to manually read the coordinates
 #%matplotlib qt 
 # show inline image for the reader
-get_ipython().magic('matplotlib inline')
-plt.imshow(image)
+#%matplotlib inline
+#plt.imshow(image)
 
 
 # ## 2.2. Correcting the "fish-eye" effect caused by the shape of the camera lense 
 # 
 # ### 2.2.1. Not optimzed matrix (cutting off curving margins, loosing data)
 
-# In[4]:
+# In[8]:
 
-get_ipython().magic('matplotlib inline')
-image_corrected1 = cam.apply_correction(image_file_path, camera_matrix, distortion_coefficients)
-
-
-# ### 2.2.2. Optimzed matrix (curving margins, not loosing data)
-
-# In[5]:
-
-get_ipython().magic('matplotlib inline')
-image_corrected2 = cam.apply_correction(image_file_path, camera_matrix, distortion_coefficients, matrix_optimized)
+import cv2 # we will use OpenCV library
+image = cv2.imread(image_file_path)
+image_corrected1 = cv2.undistort(image, camera_matrix, distortion_coefficients, None, None)
+plot_images(image, image_corrected1)
+image_corrected2 = cv2.undistort(image, camera_matrix, distortion_coefficients, None, matrix_optimized)
+plot_images(image, image_corrected2)
 
 
-# ## 2.3. Continue with the corrected image
-
-# In[6]:
+# In[9]:
 
 def corners_unwarp(image, nx, ny, camera_matrix, distortion_coefficients, perspective_transform_matrix):
     """
@@ -157,12 +281,14 @@ def corners_unwarp(image, nx, ny, camera_matrix, distortion_coefficients, perspe
 
         # For source points I'm grabbing the outer four detected corners
         src = np.float32([corners[0], corners[nx-1], corners[-1], corners[-nx]])
+        print("source\n", src)
         # For destination points, I'm arbitrarily choosing some points to be
         # a nice fit for displaying our warped result 
         # again, not exact, but close enough for our purposes
         dst = np.float32([[offset, offset], [img_size[0]-offset, offset], 
                                      [img_size[0]-offset, img_size[1]-offset], 
                                      [offset, img_size[1]-offset]])
+        print("destination\n", dst)
         # Given src and dst points, calculate the perspective transform matrix
         M = cv2.getPerspectiveTransform(src, dst)
         # Warp the image using OpenCV warpPerspective()
@@ -172,7 +298,7 @@ def corners_unwarp(image, nx, ny, camera_matrix, distortion_coefficients, perspe
     return warped, M
 
 
-# In[7]:
+# In[10]:
 
 warped, M = corners_unwarp(image_corrected1, 
                nx=9, ny=6, 
@@ -180,10 +306,20 @@ warped, M = corners_unwarp(image_corrected1,
                distortion_coefficients=distortion_coefficients,
                perspective_transform_matrix = None)
 
-get_ipython().magic('matplotlib inline')
+plot_images(image, warped)
 
-cam.plot_images(image, warped)
 
+# In[11]:
+
+import cv2 # we will use OpenCV library
+image = cv2.imread(image_file_path)
+image_corrected1 = cv2.undistort(image, camera_matrix, distortion_coefficients, None, None)
+plot_images(image, image_corrected1)
+img_size = (image_corrected1.shape[1], image_corrected1.shape[0])
+
+
+
+# ## 2.3. Continue with the corrected image
 
 # <hr />
 
@@ -193,17 +329,37 @@ cam.plot_images(image, warped)
 # 
 # I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in another_file.py).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
 
-# In[8]:
+# In[18]:
 
-# show image inline (for readers of this notebook)
-get_ipython().magic('matplotlib inline')
-plt.imshow(image)
+import numpy as np
+alibration8_source = np.float32([
+    [710,214],
+    [994,237],
+    [994,476],
+    [714,509]])
+
+calibration8_destination = np.float32([
+    [80,100],
+    [1180,100],
+    [1180,620],
+    [100,620]])
 
 
-# In[9]:
+#image_file_path = "test_images/test4.jpg"
+#image = cam.apply_correction(image_file_path, camera_matrix, distortion_coefficients)
+import cv2 # we will use OpenCV library
+image = cv2.imread(image_file_path)
+image_corrected3 = cv2.undistort(image, camera_matrix, distortion_coefficients, None, None)
+plot_images(image, image_corrected3)
 
-# show image inline (for readers of this notebook)
-get_ipython().magic('matplotlib inline')
+# http://docs.opencv.org/3.1.0/da/d6e/tutorial_py_geometric_transformations.html
+M = cv2.getPerspectiveTransform(alibration8_source, calibration8_destination)
+warped = cv2.warpPerspective(image_corrected3, M, img_size)
+plot_images(image, warped)
+
+
+# In[13]:
+
 plt.imshow(image)
 plt.plot(280, 74, "*r") # top-left red star
 plt.plot(352, 83, "*r") # top-right red star
@@ -211,11 +367,11 @@ plt.plot(354, 116, "*r") # bottom-right red star
 plt.plot(281, 108, "*r") # bottom-left red star
 
 
-# In[10]:
+# In[14]:
 
+STOP
 warped = warp(image)
     
-get_ipython().magic('matplotlib inline')
 
 f, (ax1, ax2) = plt.subplots(1,2,figsize=(20,10))
 ax1.set_title("Original Image")
