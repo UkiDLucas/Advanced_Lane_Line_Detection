@@ -77,10 +77,11 @@ def __get_sample_gray(image_file_name: str):
 # In[3]:
 
 def __find_inside_corners(image_file_names: list, nx: int=9, ny: int=6, verbose = False):
-    # Chessboard dimentsions
-    # nx = 9 # horizontal
-    # ny = 6 # vertical
-
+    """
+    Chessboard dimentsions:
+     nx = 9 # horizontal
+     ny = 6 # vertical
+    """
     import cv2 # we will use OpenCV library
     import numpy as np
     # Initialise arrays
@@ -264,8 +265,6 @@ img_size = (image_corrected1.shape[1], image_corrected1.shape[0])
 
 # In[10]:
 
-
-
 #image_file_path = "test_images/test4.jpg"
 #image = cam.apply_correction(image_file_path, camera_matrix, distortion_coefficients)
 import cv2 # we will use OpenCV library
@@ -276,49 +275,109 @@ plot_images(image, image_corrected3)
 
 # In[11]:
 
-import numpy as np
-alibration8_source = np.float32([
-    [710,214],
-    [994,237],
-    [994,476],
-    [714,509]])
-
-calibration8_destination = np.float32([
-    [110,100],
-    [1180,100],
-    [1180,620],
-    [100,620]])
-
-
-
-# http://docs.opencv.org/3.1.0/da/d6e/tutorial_py_geometric_transformations.html
-M = cv2.getPerspectiveTransform(alibration8_source, calibration8_destination)
-warped = cv2.warpPerspective(image_corrected3, M, img_size)
-plot_images(image, warped)
+def plot_with_corners(image, corners_matrix, inline: bool=True):
+    
+    if inline:
+        # show inline image for the reader
+        get_ipython().magic('matplotlib inline')
+    else:
+        # show in external window to manually read the coordinates
+        get_ipython().magic('matplotlib qt')
+    
+    plt.imshow(image)
+    plt.plot(corners_matrix[0][0], corners_matrix[0][1], "Xr") # top-left red star
+    plt.plot(corners_matrix[1][0], corners_matrix[1][1], "Xb") # top-right red star
+    plt.plot(corners_matrix[2][0], corners_matrix[2][1], "Xg") # bottom-right red star
+    plt.plot(corners_matrix[3][0], corners_matrix[3][1], "Xy") # bottom-left red star
 
 
 # In[12]:
 
-plt.imshow(image_corrected3)
-plt.plot(280, 74, "*r") # top-left red star
-plt.plot(352, 83, "*r") # top-right red star
-plt.plot(354, 116, "*r") # bottom-right red star
-plt.plot(281, 108, "*r") # bottom-left red star
+# show in external window to manually read the coordinates
+#%matplotlib qt 
+# show inline image for the reader
+get_ipython().magic('matplotlib inline')
+#plt.imshow(image)plot_images(image, warped)
+
+import numpy as np
+# calibration8 source
+SRC = np.float32([
+    [657,115],
+    [1021,175],
+    [1021,536],
+    [665,613]])
+
+plot_with_corners(image_corrected3, SRC, inline=True)
 
 
 # In[13]:
 
-STOP
-warped = warp(image)
-    
+import numpy as np
+# calibration8 destination
+DEST = np.float32([
+    [110,100],
+    [1180,100],
+    [1180,620],
+    [100,620]])
+plot_with_corners(image_corrected3, DEST, inline=True)
 
-f, (ax1, ax2) = plt.subplots(1,2,figsize=(20,10))
-ax1.set_title("Original Image")
-ax1.imshow(image)
 
-ax2.set_title("Warped Image")
-#ax2.imshow(warped.reshape(warped.shape[0], warped.shape[1]), cmap=plt.cm.Greys)
-ax2.imshow(warped)
+# In[14]:
+
+# http://docs.opencv.org/3.1.0/da/d6e/tutorial_py_geometric_transformations.html
+M = cv2.getPerspectiveTransform(SRC, DEST)
+print(M)
+image_warped = cv2.warpPerspective(image_corrected3, M, img_size)
+plot_with_corners(image_warped, DEST, inline=True)
+
+
+# In[15]:
+
+plot_with_corners(image_warped, DEST, inline=True)
+
+
+# In[16]:
+
+image_file_path = "test_images/test4.jpg"
+#image = cam.apply_correction(image_file_path, camera_matrix, distortion_coefficients)
+import cv2 # we will use OpenCV library
+image = cv2.imread(image_file_path)
+image_corrected = cv2.undistort(image, camera_matrix, distortion_coefficients, None, None)
+plot_images(image, image_corrected)
+
+
+# In[17]:
+
+SRC = np.float32(
+        [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
+        [((img_size[0] / 6) - 10), img_size[1]],
+        [(img_size[0] * 5 / 6) + 60, img_size[1]],
+        [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
+
+print(SRC)
+
+DEST = np.float32(
+        [[(img_size[0] / 4), 0],
+        [(img_size[0] / 4), img_size[1]],
+        [(img_size[0] * 3 / 4), img_size[1]],
+        [(img_size[0] * 3 / 4), 0]])
+
+print(DEST)
+
+
+# In[18]:
+
+plot_with_corners(image_corrected, SRC, inline=True)
+
+
+# In[21]:
+
+# http://docs.opencv.org/3.1.0/da/d6e/tutorial_py_geometric_transformations.html
+M = cv2.getPerspectiveTransform(SRC, DEST)
+print(M)
+image_warped = cv2.warpPerspective(image_corrected, M, img_size)
+#image_warped.reshape(image_warped.shape[0], image_warped.shape[1])
+plot_with_corners(image_warped, DEST, inline=True)
 
 
 # In[ ]:
@@ -416,7 +475,7 @@ ax2.imshow(warped)
 # 
 # Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
 
-# In[ ]:
+# In[20]:
 
 # see http://nbconvert.readthedocs.io/en/latest/usage.html
 get_ipython().system('jupyter nbconvert --to markdown README.ipynb')
