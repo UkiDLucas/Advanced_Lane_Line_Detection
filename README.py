@@ -1,6 +1,27 @@
 
 # coding: utf-8
 
+# In[1]:
+
+def plot_with_corners(image, corners_matrix, inline: bool=True):
+    
+    import matplotlib.pyplot as plt
+    
+    if inline:
+        # show inline image for the reader
+        get_ipython().magic('matplotlib inline')
+    else:
+        # show in external window to manually read the coordinates
+        get_ipython().magic('matplotlib qt')
+        
+    plt.figure(figsize=(20,10))
+    plt.imshow(image)
+    plt.plot(corners_matrix[0][0], corners_matrix[0][1], "Xr") # top-left red star
+    plt.plot(corners_matrix[1][0], corners_matrix[1][1], "Xb") # top-right red star
+    plt.plot(corners_matrix[2][0], corners_matrix[2][1], "Xg") # bottom-right red star
+    plt.plot(corners_matrix[3][0], corners_matrix[3][1], "Xy") # bottom-left red star
+
+
 # # Project 4: Andvanced Road Lane Lines
 # 
 # by Uki D. Lucas
@@ -39,7 +60,11 @@
 # 
 # We encourage you to go out and take video of your own, calibrate your camera and show us how you would implement this project from scratch!
 
-# # 1. Compute the camera calibration matrix and distortion coefficients given a set of chessboard images
+# ---
+# 
+# # Camera distortion calibration
+# 
+# ## 1. Compute the camera calibration matrix and distortion coefficients given a set of chessboard images
 # 
 # #### OpenCV functions or other methods were used to calculate the correct camera matrix and distortion coefficients using the calibration chessboard images provided in the repository (note these are 9x6 chessboard images, unlike the 8x6 images used in the lesson). The distortion matrix should be used to un-distort one of the calibration images provided as a demonstration that the calibration is correct. Example of undistorted calibration image is Included in the writeup (or saved to a folder).
 # 
@@ -53,17 +78,6 @@
 
 # # Define Useful Functions
 
-# In[1]:
-
-def plot_images(left_image, right_image):
-    import numpy as np
-    import matplotlib.pyplot as plt
-    plt.figure(figsize=(20,10))
-    plot_image = np.concatenate((left_image, right_image), axis=1)
-    plt.imshow(plot_image)
-    plt.show() 
-
-
 # In[2]:
 
 def __get_sample_gray(image_file_name: str):
@@ -75,6 +89,63 @@ def __get_sample_gray(image_file_name: str):
 
 
 # In[3]:
+
+def plot_images(left_image, right_image):
+    import numpy as np
+    import matplotlib.pyplot as plt
+    plt.figure(figsize=(20,10))
+    plot_image = np.concatenate((left_image, right_image), axis=1)
+    plt.imshow(plot_image)
+    plt.show() 
+
+
+# In[4]:
+
+def prep_calibration(image_file_names: list, use_optimized = True, verbose = False):
+    
+    # we will use OpenCV library
+    import cv2 
+    
+    # find CORNERS
+    object_point_list, image_points_list = __find_inside_corners(image_file_names)
+    
+    # get sample image, mostly for dimensions
+    image_original, image_gray = __get_sample_gray(image_file_names[1])
+
+    # Learn calibration
+    # Returns:
+    # - camera matrix
+    # - distortion coefficients
+    # - rotation vectors
+    # - translation vectors
+    has_sucess, matrix, distortion, rvecs, tvecs = cv2.calibrateCamera(
+        object_point_list, 
+        image_points_list, 
+        image_gray.shape[::-1], 
+        None, 
+        None)
+    
+    ## I can use this to improve the calibration (no cropped edges, but curved edges)
+    image_dimentions = image_original.shape[:2] # height, width
+    matrix_optimized, roi = cv2.getOptimalNewCameraMatrix(
+        matrix, 
+        distortion, 
+        image_dimentions, 
+        1, 
+        image_dimentions)
+    return matrix, matrix_optimized, distortion
+
+
+# ## 1.1. Read 20 sample chessboard images taken with the camera we want to callibrate
+
+# In[5]:
+
+import glob
+image_file_names = glob.glob("camera_cal/calibration*.jpg")
+print(len(image_file_names), "images found")
+
+
+# In[6]:
 
 def __find_inside_corners(image_file_names: list, nx: int=9, ny: int=6, verbose = False):
     """
@@ -145,55 +216,9 @@ def __find_inside_corners(image_file_names: list, nx: int=9, ny: int=6, verbose 
     return object_point_list, image_points_list
 
 
-# In[4]:
-
-def prep_calibration(image_file_names: list, use_optimized = True, verbose = False):
-    
-    # we will use OpenCV library
-    import cv2 
-    
-    # find CORNERS
-    object_point_list, image_points_list = __find_inside_corners(image_file_names)
-    
-    # get sample image, mostly for dimensions
-    image_original, image_gray = __get_sample_gray(image_file_names[1])
-
-    # Learn calibration
-    # Returns:
-    # - camera matrix
-    # - distortion coefficients
-    # - rotation vectors
-    # - translation vectors
-    has_sucess, matrix, distortion, rvecs, tvecs = cv2.calibrateCamera(
-        object_point_list, 
-        image_points_list, 
-        image_gray.shape[::-1], 
-        None, 
-        None)
-    
-    ## I can use this to improve the calibration (no cropped edges, but curved edges)
-    image_dimentions = image_original.shape[:2] # height, width
-    matrix_optimized, roi = cv2.getOptimalNewCameraMatrix(
-        matrix, 
-        distortion, 
-        image_dimentions, 
-        1, 
-        image_dimentions)
-    return matrix, matrix_optimized, distortion
-
-
-# ## 1.1. Read 20 sample chessboard images taken with the camera we want to callibrate
-
-# In[5]:
-
-import glob
-image_file_names = glob.glob("camera_cal/calibration*.jpg")
-print(len(image_file_names), "images found")
-
-
 # ## 1.2. Learn calibration based on sample images
 
-# In[6]:
+# In[7]:
 
 #import camera_calibration as cam # local camera_calibration.py, same directory
 
@@ -209,7 +234,7 @@ camera_matrix, matrix_optimized, distortion_coefficients = prep_calibration(
 # 
 # I have chosen an interesting chessboard image that will show a very dramatic transformation.
 
-# In[7]:
+# In[8]:
 
 #image_file_path = "test_images/test1.jpg"
 #image_file_path = "test_images/stop_sign_angle_001.png"
@@ -233,7 +258,7 @@ import matplotlib.pyplot as plt
 # 
 # ### 2.2.1. Not optimzed matrix (cutting off curving margins, loosing data)
 
-# In[8]:
+# In[9]:
 
 import cv2 # we will use OpenCV library
 image = cv2.imread(image_file_path)
@@ -241,16 +266,6 @@ image_corrected1 = cv2.undistort(image, camera_matrix, distortion_coefficients, 
 plot_images(image, image_corrected1)
 image_corrected2 = cv2.undistort(image, camera_matrix, distortion_coefficients, None, matrix_optimized)
 plot_images(image, image_corrected2)
-
-
-# In[9]:
-
-import cv2 # we will use OpenCV library
-image = cv2.imread(image_file_path)
-image_corrected1 = cv2.undistort(image, camera_matrix, distortion_coefficients, None, None)
-plot_images(image, image_corrected1)
-img_size = (image_corrected1.shape[1], image_corrected1.shape[0])
-
 
 
 # ## 2.3. Continue with the corrected image
@@ -264,34 +279,6 @@ img_size = (image_corrected1.shape[1], image_corrected1.shape[0])
 # I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in another_file.py).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
 
 # In[10]:
-
-#image_file_path = "test_images/test4.jpg"
-#image = cam.apply_correction(image_file_path, camera_matrix, distortion_coefficients)
-import cv2 # we will use OpenCV library
-image = cv2.imread(image_file_path)
-image_corrected3 = cv2.undistort(image, camera_matrix, distortion_coefficients, None, None)
-plot_images(image, image_corrected3)
-
-
-# In[11]:
-
-def plot_with_corners(image, corners_matrix, inline: bool=True):
-    
-    if inline:
-        # show inline image for the reader
-        get_ipython().magic('matplotlib inline')
-    else:
-        # show in external window to manually read the coordinates
-        get_ipython().magic('matplotlib qt')
-    
-    plt.imshow(image)
-    plt.plot(corners_matrix[0][0], corners_matrix[0][1], "Xr") # top-left red star
-    plt.plot(corners_matrix[1][0], corners_matrix[1][1], "Xb") # top-right red star
-    plt.plot(corners_matrix[2][0], corners_matrix[2][1], "Xg") # bottom-right red star
-    plt.plot(corners_matrix[3][0], corners_matrix[3][1], "Xy") # bottom-left red star
-
-
-# In[12]:
 
 # show in external window to manually read the coordinates
 #%matplotlib qt 
@@ -307,10 +294,10 @@ SRC = np.float32([
     [1021,536],
     [665,613]])
 
-plot_with_corners(image_corrected3, SRC, inline=True)
+plot_with_corners(image_corrected1, SRC, inline=True)
 
 
-# In[13]:
+# In[11]:
 
 import numpy as np
 # calibration8 destination
@@ -319,58 +306,76 @@ DEST = np.float32([
     [1180,100],
     [1180,620],
     [100,620]])
-plot_with_corners(image_corrected3, DEST, inline=True)
+plot_with_corners(image_corrected1, DEST, inline=True)
 
 
-# In[14]:
+# In[12]:
 
 # http://docs.opencv.org/3.1.0/da/d6e/tutorial_py_geometric_transformations.html
 M = cv2.getPerspectiveTransform(SRC, DEST)
 print(M)
-image_warped = cv2.warpPerspective(image_corrected3, M, img_size)
+img_size = (image_corrected1.shape[1], image_corrected1.shape[0])
+image_warped = cv2.warpPerspective(image_corrected1, M, img_size)
 plot_with_corners(image_warped, DEST, inline=True)
 
 
-# In[15]:
+# # Switch to real road picture
 
-plot_with_corners(image_warped, DEST, inline=True)
-
-
-# In[16]:
+# In[13]:
 
 image_file_path = "test_images/test4.jpg"
-#image = cam.apply_correction(image_file_path, camera_matrix, distortion_coefficients)
+
 import cv2 # we will use OpenCV library
 image = cv2.imread(image_file_path)
 image_corrected = cv2.undistort(image, camera_matrix, distortion_coefficients, None, None)
 plot_images(image, image_corrected)
 
 
-# In[17]:
+# In[14]:
+
+image_file_path = "test_images/straight_lines1.jpg"
+import cv2 # we will use OpenCV library
+image = cv2.imread(image_file_path)
+import numpy as np
+
+img_size = (image.shape[1], image.shape[0])
+width = image.shape[1]
+height = image.shape[0]
+
+horizon_offset = 90
+top_horizontal_offset = 55
+car_hood_offset = 45
+hood_to_width_offset = 200
 
 SRC = np.float32(
-        [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-        [((img_size[0] / 6) - 10), img_size[1]],
-        [(img_size[0] * 5 / 6) + 60, img_size[1]],
-        [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
+        [[(width / 2) - top_horizontal_offset, height / 2 + horizon_offset], #619, 432
+        [hood_to_width_offset, height - car_hood_offset],
+        [width - hood_to_width_offset, height - car_hood_offset],
+        [(width / 2 + top_horizontal_offset), height / 2 + horizon_offset]])
 
 print(SRC)
 
 DEST = np.float32(
-        [[(img_size[0] / 4), 0],
-        [(img_size[0] / 4), img_size[1]],
-        [(img_size[0] * 3 / 4), img_size[1]],
-        [(img_size[0] * 3 / 4), 0]])
+        [[(width / 4), 0],
+        [(width / 4), img_size[1]],
+        [(width * 3 / 4), img_size[1]],
+        [(width * 3 / 4), 0]])
 
 print(DEST)
 
+plot_with_corners(image, SRC, inline=True)
 
-# In[18]:
+
+# # Reference image with straight lines
+# 
+# I am using the reference image with staight lines to determine this camera's horizon (areas to mask)
+
+# In[15]:
 
 plot_with_corners(image_corrected, SRC, inline=True)
 
 
-# In[21]:
+# In[16]:
 
 # http://docs.opencv.org/3.1.0/da/d6e/tutorial_py_geometric_transformations.html
 M = cv2.getPerspectiveTransform(SRC, DEST)
@@ -380,10 +385,99 @@ image_warped = cv2.warpPerspective(image_corrected, M, img_size)
 plot_with_corners(image_warped, DEST, inline=True)
 
 
-# In[ ]:
+# In[17]:
+
+def mask_lane_lines(img):
+    '''
+    Method masks lane lines.
+    '''
+    img = np.copy(img)
+
+    #Blur
+    kernel = np.ones((5,5),np.float32)/25
+    img = cv2.filter2D(img,-1,kernel)
+
+    #YUV for histogram equalization
+    yuv = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
+    yuv[:,:,0] = cv2.equalizeHist(yuv[:,:,0])
+    img_wht = cv2.cvtColor(yuv, cv2.COLOR_YUV2BGR)
+
+    #Compute white mask
+    img_wht=img_wht[:,:,1]
+    img_wht[img_wht<250]=0
+    mask_wht = cv2.inRange(img_wht, 250, 255)
+
+    yuv[:,:,0:1]=0
+
+    #Yellow mask
+    kernel = np.ones((5,5),np.float32)/25
+    dst = cv2.filter2D(yuv,-1,kernel)
+    sobelx = np.absolute(cv2.Sobel(yuv[:,:,2], cv2.CV_64F, 1, 0,ksize=5))
+    sobelx[sobelx<200]=0
+    sobelx[sobelx>=200]=255
+
+    #Merge mask results
+    mask = mask_wht + sobelx
+    return mask
 
 
+mask = mask_lane_lines(img = image_warped)
 
+print(mask)
+
+
+# ### Lane Masking
+# 
+# After the lens distortion has been removed, a binary image will be created, containing pixels which are likely part of a
+# lane. Therefore the result of multiple techniques are combined by a bitwise and operator. Finding good parameters for the different techniques like threshold values is quite challenging. To improve the feedback cycle of applying different parameters, an interactive [jupyter notebook](Interactive Parameter Exploration.ipynb) was created.
+# <br><br>
+# The first technique is called sobel operation which is able to detect edges by computing an approximation of the 
+# gradient of the image intensity function. The operation was applied for both directions (x and y) and combined to keep only
+# those pixel which are on both results and also over a specified threshold. An averaged gray scale image from
+# the U and V color channels of the YUV space and also the S channel of the HLS space was used as input. 
+# <br><br>
+# Additionally, the magnitude and direction of the gradient was calculated and combined by keeping only pixels with values above a threshold (different threshold for magnitude and direction) on both images.
+# <br><br>
+# Technique number three is a basic color thresholding which tries to isolate yellow pixels.
+# <br><br>
+# The last technique is an adaptive highlight / high intensity detection. It isolates all the pixels which have values above
+# a given percentile in order to make it more resilient against different lighting conditions.
+# <br><br>
+# In the end, the results are combined through a bitwise or operation to get the final lane mask.
+# 
+# 
+# Sobel X & Y                   |  Magnitude & Direction of Gradient  | Yellow | Highlights | Combined
+# :----------------------------:|:-----------------------------------:|:------:|:----------:|:---------:
+# ![Sobel](output_images/test1_mask_sobelxy.jpg)| ![Gradient](output_images/test1_mask_gradient_mag_dir.jpg) | ![Yellow](output_images/test1_mask_ylw.jpg) | ![Highlights](output_images/test1_mask_highlights.jpg) | ![Combined](output_images/test1_mask.jpg)
+# 
+# 
+
+# # Birdseye View
+# To determine suitable source coordinates for the perspective transformation, an image with relative straight lines was
+# used as reference. Since the car was not perfectly centered the image, it was horizontally mirrored. The resulting image
+# was then used inside the interactive [jupyter notebook](Interactive Parameter Exploration.ipynb) to fit vanishing lines and to get source coordinates.
+# 
+# After suitable coordinates were determined, the transformation can be applied to other images. This is of course just an
+# approximation and is not 100% accurate. 
+# 
+# Mask                          |  Birdseye View
+# :----------------------------:|:-----------------------------------------------------------:
+# ![Mask](output_images/test1_mask.jpg)| ![Birdseye](output_images/test1_birdseye.jpg)
+# 
+# 
+
+# # Identify Pixels
+# 
+# Since not all pixels marked in the mask are actually part of the lanes, the most likely ones have to be identified. For that, a sliding histogram is applied to detect clusters of marked pixels. The highest peak of each histogram is used as the center of a window which assigns each pixel inside to the corresponding lane. The sliding histogram is applied to the left half of the image to detect left line pixels and applied on the right half of the image to detect right lane pixels. Therefore, the algorithm will fail if a lane crosses the center of the image.
+# <br><br>
+# This process is pretty computing intensive. That's why the algorithm will try to find lane pixels in the area of
+# previously found lines first. This is only possible when using videos.
+# 
+# Left Lane Histogram             | Assigned Pixels                | Right Lane Histogram           
+# :------------------------------:|:------------------------------:|:------------------------------:
+# ![Left Lane Histogram](output_images/test1_histogram_left.jpg) | ![Assigned Pixels](output_images/test1_pixel.jpg)| ![Right Lane Histogram](output_images/test1_histogram_right.jpg) 
+# 
+# 
 
 # ### 4. Identified lane-line pixels and fit their positions with a polynomial
 # 
@@ -416,6 +510,21 @@ plot_with_corners(image_warped, DEST, inline=True)
 # Warp Example
 # <img src="examples/warped_straight_lines.jpg" alt="Warp Example" />
 
+# In[ ]:
+
+
+
+
+# # Fit Polynomial
+# 
+# With pixels assigned to each lane, a second order polynomials can be fitted. To achieve smoother results, the polynomials 
+# are also average over the last five frames in a video. The polynomials are also used to calculate the curvature of the lane
+# and the relative offset from the car to the center line.
+# 
+# Fit Polynomial                | Final
+# :----------------------------:|:-----------------------------------------------------------:
+# ![Mask](output_images/test1_lines.jpg)| ![Birdseye](output_images/test1_final.jpg)
+
 # # Pipeline (video)
 # 
 # ### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
@@ -443,13 +552,8 @@ plot_with_corners(image_warped, DEST, inline=True)
 # 
 # Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
 
-# In[20]:
+# In[18]:
 
 # see http://nbconvert.readthedocs.io/en/latest/usage.html
 get_ipython().system('jupyter nbconvert --to markdown README.ipynb')
-
-
-# In[ ]:
-
-
 
